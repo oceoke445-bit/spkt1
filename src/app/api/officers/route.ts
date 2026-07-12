@@ -25,6 +25,7 @@ export const POST = handleApi(async (request) => {
     email: body.email,
     phone: body.phone,
     status: body.status,
+    division: body.division,
     userId: body.userId,
   });
 

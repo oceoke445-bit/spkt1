@@ -45,3 +45,4 @@ export function useReports(params?: {
 
   return { reports, loading, error, refresh, page, setPage, total, totalPages };
 }
+

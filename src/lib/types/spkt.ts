@@ -59,6 +59,8 @@ export interface Report {
   priority?: 'low' | 'medium' | 'high' | 'urgent';
 }
 
+export type OfficerDivision = 'laporan' | 'surat' | 'pengaduan';
+
 export interface LetterRequest {
   id: string;
   requestNumber: string;
@@ -73,6 +75,10 @@ export interface LetterRequest {
   pickupDate?: string;
   attachmentFiles?: string[];
   rejectionReason?: string;
+  assignedTo?: string;
+  assignedOfficerId?: string;
+  assignedBy?: string;
+  assignedAt?: string;
   timeline: TimelineEvent[];
 }
 
@@ -90,6 +96,10 @@ export interface Complaint {
   response?: string;
   responseDate?: string;
   files?: string[];
+  assignedTo?: string;
+  assignedOfficerId?: string;
+  assignedBy?: string;
+  assignedAt?: string;
   timeline: TimelineEvent[];
 }
 
@@ -101,6 +111,7 @@ export interface Officer {
   email: string;
   phone: string;
   status: 'available' | 'busy' | 'offline';
+  division: OfficerDivision;
   assignedCases: number;
   completedCases: number;
 }

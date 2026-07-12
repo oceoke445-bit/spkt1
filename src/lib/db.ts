@@ -304,6 +304,35 @@ function migrateSchema() {
   if (!columnExists('letter_requests', 'requester_phone')) {
     db.exec('ALTER TABLE letter_requests ADD COLUMN requester_phone TEXT');
   }
+  if (!columnExists('officers', 'division')) {
+    db.exec("ALTER TABLE officers ADD COLUMN division TEXT NOT NULL DEFAULT 'laporan'");
+  }
+  if (!columnExists('letter_requests', 'assigned_officer_id')) {
+    db.exec('ALTER TABLE letter_requests ADD COLUMN assigned_officer_id TEXT');
+  }
+  if (!columnExists('letter_requests', 'assigned_to')) {
+    db.exec('ALTER TABLE letter_requests ADD COLUMN assigned_to TEXT');
+  }
+  if (!columnExists('letter_requests', 'assigned_by')) {
+    db.exec('ALTER TABLE letter_requests ADD COLUMN assigned_by TEXT');
+  }
+  if (!columnExists('letter_requests', 'assigned_at')) {
+    db.exec('ALTER TABLE letter_requests ADD COLUMN assigned_at TEXT');
+  }
+  if (!columnExists('complaints', 'assigned_officer_id')) {
+    db.exec('ALTER TABLE complaints ADD COLUMN assigned_officer_id TEXT');
+  }
+  if (!columnExists('complaints', 'assigned_to')) {
+    db.exec('ALTER TABLE complaints ADD COLUMN assigned_to TEXT');
+  }
+  if (!columnExists('complaints', 'assigned_by')) {
+    db.exec('ALTER TABLE complaints ADD COLUMN assigned_by TEXT');
+  }
+  if (!columnExists('complaints', 'assigned_at')) {
+    db.exec('ALTER TABLE complaints ADD COLUMN assigned_at TEXT');
+  }
+
+  backfillOfficerDivisions();
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS letter_timeline (
@@ -371,8 +400,98 @@ function migrateSchema() {
   syncInfoArticles();
   migratePlainPasswords();
   linkOfficersToUsers();
+  ensureDemoPetugasAccounts();
   backfillLetterTimelines();
   backfillComplaintTimelines();
+}
+
+function backfillOfficerDivisions() {
+  const update = db.prepare('UPDATE officers SET division = ? WHERE id = ?');
+  update.run('laporan', 'OFF001');
+  update.run('surat', 'OFF002');
+  update.run('pengaduan', 'OFF003');
+  db.prepare("UPDATE officers SET division = 'laporan' WHERE division IS NULL OR division = ''").run();
+}
+
+function ensureDemoPetugasAccounts() {
+  const demoPassword = hashPassword('spkt123');
+
+  const insertUser = db.prepare(
+    `INSERT OR IGNORE INTO users (id, email, password, name, nik, phone, role)
+     VALUES (@id, @email, @password, @name, NULL, @phone, 'petugas')`,
+  );
+
+  const upsertOfficer = db.prepare(
+    `INSERT INTO officers (id, user_id, name, rank, email, phone, status, division)
+     VALUES (@id, @userId, @name, @rank, @email, @phone, @status, @division)
+     ON CONFLICT(id) DO UPDATE SET
+       user_id = excluded.user_id,
+       name = excluded.name,
+       rank = excluded.rank,
+       email = excluded.email,
+       phone = excluded.phone,
+       division = excluded.division`,
+  );
+
+  const demoAccounts = [
+    {
+      userId: 'U002',
+      email: 'petugas@spkt.id',
+      name: 'Ipda. Ahmad Wijaya',
+      phone: '081234567890',
+      officerId: 'OFF001',
+      rank: 'Inspektur Polisi Dua',
+      status: 'busy',
+      division: 'laporan',
+    },
+    {
+      userId: 'U004',
+      email: 'petugas-surat@spkt.id',
+      name: 'Bripka. Andi Pratama',
+      phone: '081234567891',
+      officerId: 'OFF002',
+      rank: 'Brigadir Polisi Kepala',
+      status: 'available',
+      division: 'surat',
+    },
+    {
+      userId: 'U005',
+      email: 'petugas-pengaduan@spkt.id',
+      name: 'Aipda. Rini Kusuma',
+      phone: '081234567892',
+      officerId: 'OFF003',
+      rank: 'Ajun Inspektur Polisi Dua',
+      status: 'available',
+      division: 'pengaduan',
+    },
+  ] as const;
+
+  for (const account of demoAccounts) {
+    insertUser.run({
+      id: account.userId,
+      email: account.email,
+      password: demoPassword,
+      name: account.name,
+      phone: account.phone,
+    });
+
+    upsertOfficer.run({
+      id: account.officerId,
+      userId: account.userId,
+      name: account.name,
+      rank: account.rank,
+      email: account.email,
+      phone: account.phone,
+      status: account.status,
+      division: account.division,
+    });
+  }
+}
+
+function inferOfficerDivision(email: string): 'laporan' | 'surat' | 'pengaduan' {
+  if (email.includes('surat')) return 'surat';
+  if (email.includes('pengaduan')) return 'pengaduan';
+  return 'laporan';
 }
 
 function backfillComplaintTimelines() {
@@ -423,14 +542,16 @@ function linkOfficersToUsers() {
     if (officer) {
       db.prepare('UPDATE officers SET user_id = ?, name = ? WHERE id = ?').run(user.id, user.name, officer.id);
     } else {
+      const division = inferOfficerDivision(user.email);
       db.prepare(
-        `INSERT INTO officers (id, user_id, name, rank, email, phone, status)
-         VALUES (@id, @userId, @name, 'Brigadir', @email, '', 'available')`,
+        `INSERT INTO officers (id, user_id, name, rank, email, phone, status, division)
+         VALUES (@id, @userId, @name, 'Brigadir', @email, '', 'available', @division)`,
       ).run({
         id: `OFF${user.id}`,
         userId: user.id,
         name: user.name,
         email: user.email,
+        division,
       });
     }
   }
@@ -597,9 +718,27 @@ function seedAppData() {
     phone: null,
     role: 'admin',
   });
+  insertUser.run({
+    id: 'U004',
+    email: 'petugas-surat@spkt.id',
+    password: demoPassword,
+    name: 'Bripka. Andi Pratama',
+    nik: null,
+    phone: '081234567891',
+    role: 'petugas',
+  });
+  insertUser.run({
+    id: 'U005',
+    email: 'petugas-pengaduan@spkt.id',
+    password: demoPassword,
+    name: 'Aipda. Rini Kusuma',
+    nik: null,
+    phone: '081234567892',
+    role: 'petugas',
+  });
 
   const insertOfficer = db.prepare(
-    'INSERT INTO officers (id, user_id, name, rank, email, phone, status) VALUES (@id, @userId, @name, @rank, @email, @phone, @status)',
+    'INSERT INTO officers (id, user_id, name, rank, email, phone, status, division) VALUES (@id, @userId, @name, @rank, @email, @phone, @status, @division)',
   );
 
   insertOfficer.run({
@@ -610,24 +749,27 @@ function seedAppData() {
     email: 'petugas@spkt.id',
     phone: '081234567890',
     status: 'busy',
+    division: 'laporan',
   });
   insertOfficer.run({
     id: 'OFF002',
-    userId: null,
+    userId: 'U004',
     name: 'Bripka. Andi Pratama',
     rank: 'Brigadir Polisi Kepala',
-    email: 'andi.pratama@spkt.id',
+    email: 'petugas-surat@spkt.id',
     phone: '081234567891',
     status: 'available',
+    division: 'surat',
   });
   insertOfficer.run({
     id: 'OFF003',
-    userId: null,
+    userId: 'U005',
     name: 'Aipda. Rini Kusuma',
     rank: 'Ajun Inspektur Polisi Dua',
-    email: 'rini.kusuma@spkt.id',
+    email: 'petugas-pengaduan@spkt.id',
     phone: '081234567892',
     status: 'available',
+    division: 'pengaduan',
   });
   insertOfficer.run({
     id: 'OFF004',
@@ -637,6 +779,7 @@ function seedAppData() {
     email: 'dedi.saputra@spkt.id',
     phone: '081234567893',
     status: 'offline',
+    division: 'laporan',
   });
 
   const insertReport = db.prepare(

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import type { OfficerDivision } from '@/lib/types/spkt';
 import { Button } from './ui/button';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -16,10 +17,12 @@ import {
   Inbox,
   Star,
   Shield,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from './ui/utils';
 import { iconAccent } from './iconStyles';
 import { SpktLogo } from './SpktLogo';
+import { OFFICER_DIVISION_LABELS } from '@/lib/officerDivision';
 
 interface MenuItem {
   icon: LucideIcon;
@@ -27,21 +30,24 @@ interface MenuItem {
   label: string;
   view: string;
   roles: UserRole[];
+  /** Divisi petugas yang boleh melihat menu ini (hanya untuk role petugas) */
+  petugasDivisions?: OfficerDivision[];
 }
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, iconColor: iconAccent.sky.color, label: 'Dashboard', view: 'dashboard', roles: ['user', 'petugas', 'admin'] },
   { icon: FileText, iconColor: iconAccent.cyan.color, label: 'Buat Laporan', view: 'create-report', roles: ['user'] },
   { icon: ClipboardList, iconColor: iconAccent.blue.color, label: 'Laporan Saya', view: 'my-reports', roles: ['user'] },
-  { icon: Inbox, iconColor: iconAccent.indigo.color, label: 'Laporan Masuk', view: 'incoming-reports', roles: ['petugas'] },
+  { icon: Inbox, iconColor: iconAccent.indigo.color, label: 'Laporan Masuk', view: 'incoming-reports', roles: ['petugas'], petugasDivisions: ['laporan'] },
   { icon: ClipboardList, iconColor: iconAccent.violet.color, label: 'Semua Laporan', view: 'all-reports', roles: ['admin'] },
-  { icon: Mail, iconColor: iconAccent.violet.color, label: 'Layanan Surat', view: 'letter-service', roles: ['user', 'petugas', 'admin'] },
-  { icon: MessageSquare, iconColor: iconAccent.emerald.color, label: 'Pengaduan', view: 'complaints', roles: ['user', 'petugas', 'admin'] },
+  { icon: Mail, iconColor: iconAccent.violet.color, label: 'Layanan Surat', view: 'letter-service', roles: ['user', 'petugas', 'admin'], petugasDivisions: ['surat'] },
+  { icon: MessageSquare, iconColor: iconAccent.emerald.color, label: 'Pengaduan', view: 'complaints', roles: ['user', 'petugas', 'admin'], petugasDivisions: ['pengaduan'] },
   { icon: Users, iconColor: iconAccent.sky.color, label: 'User Management', view: 'user-management', roles: ['admin'] },
   { icon: Shield, iconColor: iconAccent.indigo.color, label: 'Kelola Petugas', view: 'officer-management', roles: ['admin'] },
+  { icon: ScrollText, iconColor: iconAccent.rose.color, label: 'Audit Log', view: 'audit-log', roles: ['admin'] },
   { icon: BarChart3, iconColor: iconAccent.amber.color, label: 'Statistik', view: 'statistics', roles: ['admin'] },
   { icon: Star, iconColor: iconAccent.amber.color, label: 'Kepuasan (CSI)', view: 'csi-dashboard', roles: ['admin'] },
-  { icon: Info, iconColor: iconAccent.cyan.color, label: 'Informasi', view: 'information', roles: ['user', 'petugas', 'admin'] },
+  { icon: Info, iconColor: iconAccent.cyan.color, label: 'Informasi', view: 'information', roles: ['user', 'admin'] },
   { icon: FileText, iconColor: iconAccent.emerald.color, label: 'Kelola Artikel', view: 'article-management', roles: ['admin'] },
   { icon: Settings, iconColor: iconAccent.blue.color, label: 'Pengaturan', view: 'settings', roles: ['user', 'petugas', 'admin'] },
 ];
@@ -68,7 +74,19 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
 
   if (!user) return null;
 
-  const filteredMenuItems = menuItems.filter((item) => item.roles.includes(user.role));
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (!item.roles.includes(user.role)) return false;
+
+    if (user.role === 'petugas') {
+      const division = user.officerDivision ?? 'laporan';
+      if (item.petugasDivisions) {
+        return item.petugasDivisions.includes(division);
+      }
+      return true;
+    }
+
+    return true;
+  });
 
   const handleNavigate = (view: string) => {
     onViewChange(view);
@@ -121,7 +139,9 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           <p className="text-sm font-medium text-white truncate">{user.name}</p>
           <p className="text-xs text-blue-200 truncate">{user.email}</p>
           <p className="text-xs text-blue-100 mt-1 capitalize bg-blue-700/50 px-2 py-0.5 rounded inline-block border border-blue-500/30">
-            {user.role}
+            {user.role === 'petugas' && user.officerDivision
+              ? OFFICER_DIVISION_LABELS[user.officerDivision]
+              : user.role}
           </p>
         </div>
         <Button

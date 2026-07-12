@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
 import { getStatusBadgeColor, getStatusLabel, Report, ReportStatus } from '@/lib/data/mockData';
-import { spktApi, type AuditLogItem } from '@/lib/spktApi';
+import { spktApi } from '@/lib/spktApi';
 import { spktDialogClass } from '@/lib/spktDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReports } from '@/hooks/useReports';
 import { useOfficers } from '@/hooks/useOfficers';
 import type { Officer } from '@/lib/types/spkt';
-import { Shield, UserX, RefreshCw, AlertTriangle, Search, Users, FileText, Ban } from 'lucide-react';
+import { Shield, UserX, RefreshCw, AlertTriangle, Search, Users, FileText, Ban, Trash2, Eye, Clock, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpktPagination } from './SpktPagination';
 
@@ -28,23 +28,23 @@ export const AdminControl: React.FC = () => {
   const { reports: allReports, loading, refresh, page, setPage, total, totalPages } = useReports();
   const { officers: mockOfficers } = useOfficers();
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [viewingReport, setViewingReport] = useState<Report | null>(null);
   const [overrideStatus, setOverrideStatus] = useState<ReportStatus>('verified');
   const [reassignOfficer, setReassignOfficer] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
-  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
-
-  useEffect(() => {
-    spktApi.getAuditLogs(1, 10).then(({ logs }) => setAuditLogs(logs)).catch(() => {});
-  }, []);
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   const filteredReports = allReports.filter(report =>
     report.reportNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
     report.reporterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     report.caseType.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const laporanOfficers = mockOfficers.filter((o) => o.division === 'laporan');
 
   const handleOverrideStatus = async () => {
     if (!selectedReport || !overrideReason) {
@@ -89,12 +89,12 @@ export const AdminControl: React.FC = () => {
       await spktApi.updateReport(selectedReport.id, {
         status: 'assigned',
         assignedOfficerId: reassignOfficer,
-        timelineNote: 'Ditugaskan ulang ke petugas',
+        timelineNote: selectedReport.assignedOfficerId ? 'Ditugaskan ulang ke petugas' : 'Ditugaskan ke petugas',
         timelineOfficer: user?.name,
       });
       await refresh();
-      toast.success('Berhasil reassign', {
-        description: `Laporan ditugaskan ulang ke ${officer?.name ?? 'petugas'}`,
+      toast.success('Berhasil ditugaskan', {
+        description: `Laporan ditugaskan ke ${officer?.name ?? 'petugas'}`,
       });
       setShowReassignDialog(false);
       setSelectedReport(null);
@@ -114,6 +114,22 @@ export const AdminControl: React.FC = () => {
       });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Gagal menonaktifkan user');
+    }
+  };
+
+  const handleDeleteAllReports = async () => {
+    setDeletingAll(true);
+    try {
+      const { deleted } = await spktApi.deleteAllReports();
+      await refresh();
+      setShowDeleteAllDialog(false);
+      toast.success('Semua laporan dihapus', {
+        description: `${deleted} laporan dihapus dari database`,
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menghapus laporan');
+    } finally {
+      setDeletingAll(false);
     }
   };
 
@@ -153,7 +169,7 @@ export const AdminControl: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-white">Reassign Officer</h3>
-                <p className="text-sm text-blue-200">Tugaskan ulang petugas</p>
+                <p className="text-sm text-blue-200">Assign laporan ke petugas</p>
               </div>
             </div>
           </CardContent>
@@ -191,9 +207,23 @@ export const AdminControl: React.FC = () => {
 
       {/* All Reports with Admin Actions */}
       <Card className={cardClass}>
-        <CardHeader>
-          <CardTitle className="text-white">Semua Laporan</CardTitle>
-          <CardDescription className="text-blue-200">Kontrol penuh terhadap semua laporan</CardDescription>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <CardTitle className="text-white">Semua Laporan</CardTitle>
+            <CardDescription className="text-blue-200">
+              Kontrol penuh terhadap semua laporan ({total} total)
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowDeleteAllDialog(true)}
+            disabled={total === 0}
+            className="border-red-400/50 text-red-200 hover:bg-red-900/40 shrink-0"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Hapus Semua
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -242,6 +272,15 @@ export const AdminControl: React.FC = () => {
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-blue-600/50">
                   <Button
                     size="sm"
+                    variant="outline"
+                    onClick={() => setViewingReport(report)}
+                    className="border-blue-400/60 text-blue-100 bg-blue-800/40 hover:bg-blue-700/60"
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
+                    Detail
+                  </Button>
+                  <Button
+                    size="sm"
                     variant="destructive"
                     onClick={() => {
                       setSelectedReport(report);
@@ -257,13 +296,13 @@ export const AdminControl: React.FC = () => {
                     size="sm"
                     onClick={() => {
                       setSelectedReport(report);
-                      setReassignOfficer(report.assignedTo || '');
+                      setReassignOfficer(report.assignedOfficerId || '');
                       setShowReassignDialog(true);
                     }}
                     className="bg-sky-500 hover:bg-sky-600 text-white border border-sky-400/50 shadow-sm [&_svg]:text-sky-100"
                   >
                     <RefreshCw className="w-3 h-3 mr-1 text-amber-300" />
-                    Reassign
+                    {report.assignedTo ? 'Reassign' : 'Assign Petugas'}
                   </Button>
                   <Button
                     size="sm"
@@ -362,7 +401,9 @@ export const AdminControl: React.FC = () => {
       <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
         <DialogContent className={spktDialogClass('lg')}>
           <DialogHeader>
-            <DialogTitle className="text-white">Tugaskan Ulang Petugas</DialogTitle>
+            <DialogTitle className="text-white">
+              {selectedReport?.assignedTo ? 'Tugaskan Ulang Petugas' : 'Assign Petugas'}
+            </DialogTitle>
             <DialogDescription className="text-blue-200">
               Laporan {selectedReport?.reportNumber}
             </DialogDescription>
@@ -383,7 +424,7 @@ export const AdminControl: React.FC = () => {
                   <SelectValue placeholder="Pilih petugas..." />
                 </SelectTrigger>
                 <SelectContent className="bg-blue-900 border-blue-500/50">
-                  {mockOfficers.map((officer) => (
+                  {laporanOfficers.map((officer) => (
                     <SelectItem className="text-white hover:bg-blue-800" key={officer.id} value={officer.id}>
                       <div className="flex items-center justify-between w-full">
                         <span>{officer.name}</span>
@@ -416,7 +457,7 @@ export const AdminControl: React.FC = () => {
                 className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
               >
                 <RefreshCw className="w-4 h-4 mr-2 text-sky-200" />
-                Tugaskan Ulang
+                {selectedReport?.assignedTo ? 'Tugaskan Ulang' : 'Assign Petugas'}
               </Button>
               <Button
                 variant="outline"
@@ -430,22 +471,181 @@ export const AdminControl: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <Card className={cardClass}>
-        <CardHeader>
-          <CardTitle className="text-white">Audit Log</CardTitle>
-          <CardDescription className="text-blue-200">Riwayat aksi admin (override, reassign)</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 max-h-64 overflow-y-auto">
-          {auditLogs.length === 0 && <p className="text-blue-300 text-sm">Belum ada log</p>}
-          {auditLogs.map((log) => (
-            <div key={log.id} className="text-xs p-2 rounded bg-blue-950/40 border border-blue-500/20">
-              <p className="text-white font-medium">{log.action} · {log.entityType} {log.entityId}</p>
-              <p className="text-blue-300">{log.actorName} — {log.details}</p>
-              <p className="text-blue-500">{new Date(log.createdAt).toLocaleString('id-ID')}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {/* Report detail dialog */}
+      <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>
+        <DialogContent className={spktDialogClass('3xl')}>
+          {viewingReport && (
+            <>
+              <DialogHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <DialogTitle className="text-2xl text-white">{viewingReport.reportNumber}</DialogTitle>
+                    <DialogDescription className="mt-2 text-blue-200">
+                      Dibuat pada {new Date(viewingReport.createdAt).toLocaleString('id-ID')}
+                    </DialogDescription>
+                  </div>
+                  <span className={`px-3 py-1 text-sm rounded-full border shrink-0 ${getStatusBadgeColor(viewingReport.status)}`}>
+                    {getStatusLabel(viewingReport.status)}
+                  </span>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6 mt-4 max-h-[70vh] overflow-y-auto pr-1">
+                <div>
+                  <h3 className="font-semibold text-white mb-3">Data Pelapor</h3>
+                  <div className="bg-blue-800/50 rounded-lg p-4 space-y-2 border border-blue-600/50 text-sm">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-blue-400" />
+                      <span className="text-blue-200">Nama:</span>
+                      <span className="font-medium text-white">{viewingReport.reporterName}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-blue-400" />
+                      <span className="text-blue-200">NIK:</span>
+                      <span className="font-medium text-white">{viewingReport.reporterNIK}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-blue-400" />
+                      <span className="text-blue-200">Telepon:</span>
+                      <span className="font-medium text-white">{viewingReport.reporterPhone}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-white mb-3">Detail Kejadian</h3>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <p className="text-blue-200">Jenis Kasus</p>
+                      <p className="font-medium text-white">{viewingReport.caseType}</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-blue-200">Tanggal Kejadian</p>
+                        <p className="font-medium text-white">
+                          {new Date(viewingReport.incidentDate).toLocaleDateString('id-ID')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-blue-200">Prioritas</p>
+                        <p className="font-medium text-white capitalize">{viewingReport.priority ?? '—'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-blue-200">Lokasi</p>
+                      <p className="font-medium text-white">{viewingReport.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-200">Kronologi</p>
+                      <p className="mt-1 text-white leading-relaxed">{viewingReport.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {viewingReport.assignedTo && (
+                  <div>
+                    <h3 className="font-semibold text-white mb-3">Penugasan</h3>
+                    <div className="bg-blue-800/50 rounded-lg p-4 border border-blue-600/50 text-sm space-y-1">
+                      <p className="text-white">Petugas: <span className="font-medium">{viewingReport.assignedTo}</span></p>
+                      {viewingReport.assignedBy && (
+                        <p className="text-blue-200">Ditugaskan oleh: {viewingReport.assignedBy}</p>
+                      )}
+                      {viewingReport.assignedAt && (
+                        <p className="text-blue-300 text-xs">
+                          {new Date(viewingReport.assignedAt).toLocaleString('id-ID')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {viewingReport.evidenceFiles && viewingReport.evidenceFiles.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-white mb-3">Bukti Pendukung</h3>
+                    <div className="space-y-2">
+                      {viewingReport.evidenceFiles.map((file) => (
+                        <a
+                          key={file}
+                          href={spktApi.getFileUrl(file)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm border border-blue-500/40 rounded-lg p-2 bg-blue-900/40 text-blue-100 hover:text-cyan-200"
+                        >
+                          <FileText className="w-4 h-4 shrink-0" />
+                          {file}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {viewingReport.notes && (
+                  <div>
+                    <h3 className="font-semibold text-white mb-2">Catatan</h3>
+                    <p className="text-sm text-blue-100 bg-blue-800/50 p-3 rounded-lg border border-blue-600/50">
+                      {viewingReport.notes}
+                    </p>
+                  </div>
+                )}
+
+                {viewingReport.timeline?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-blue-400" />
+                      Riwayat Status
+                    </h3>
+                    <div className="space-y-2">
+                      {viewingReport.timeline.map((event, index) => (
+                        <div key={`${event.timestamp}-${index}`} className="bg-blue-800/50 rounded-lg p-3 border border-blue-600/50 text-sm">
+                          <div className="flex justify-between gap-2">
+                            <p className="font-medium text-white">{event.status}</p>
+                            <span className="text-xs text-blue-300 shrink-0">
+                              {new Date(event.timestamp).toLocaleString('id-ID')}
+                            </span>
+                          </div>
+                          {event.officer && <p className="text-blue-200 mt-1">Oleh: {event.officer}</p>}
+                          {event.note && <p className="text-blue-300 mt-1">{event.note}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+        <DialogContent className={spktDialogClass('md')}>
+          <DialogHeader>
+            <DialogTitle className="text-white">Hapus Semua Laporan</DialogTitle>
+            <DialogDescription className="text-blue-200">
+              Yakin ingin menghapus <span className="font-medium text-white">{total}</span> laporan dari
+              database? Timeline dan bukti pendukung ikut terhapus. Tindakan ini tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-blue-500/50 text-blue-200 hover:bg-blue-800/60"
+              onClick={() => setShowDeleteAllDialog(false)}
+              disabled={deletingAll}
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              disabled={deletingAll}
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0"
+              onClick={handleDeleteAllReports}
+            >
+              {deletingAll ? 'Menghapus...' : 'Hapus Semua'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </>
       )}
     </div>

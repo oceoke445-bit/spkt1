@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { spktApi } from '@/lib/spktApi';
+import type { OfficerDivision } from '@/lib/types/spkt';
 
 export type UserRole = 'user' | 'petugas' | 'admin';
 
@@ -13,6 +14,8 @@ export interface User {
   nik?: string;
   phone?: string;
   avatarUrl?: string;
+  officerId?: string;
+  officerDivision?: OfficerDivision;
 }
 
 function mapSessionUser(sessionUser: {
@@ -23,6 +26,8 @@ function mapSessionUser(sessionUser: {
   nik?: string;
   phone?: string;
   avatarUrl?: string;
+  officerId?: string;
+  officerDivision?: OfficerDivision;
 }): User {
   return {
     id: sessionUser.id,
@@ -32,6 +37,8 @@ function mapSessionUser(sessionUser: {
     nik: sessionUser.nik,
     phone: sessionUser.phone,
     avatarUrl: sessionUser.avatarUrl,
+    officerId: sessionUser.officerId,
+    officerDivision: sessionUser.officerDivision,
   };
 }
 

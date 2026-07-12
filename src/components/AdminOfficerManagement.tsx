@@ -11,6 +11,7 @@ import { spktDialogClass } from '@/lib/spktDialog';
 import { toast } from 'sonner';
 import { Plus, Trash2, Pencil } from 'lucide-react';
 import type { Officer } from '@/lib/types/spkt';
+import { OFFICER_DIVISION_LABELS } from '@/lib/officerDivision';
 
 type PetugasUser = { id: string; name: string; email: string };
 
@@ -20,6 +21,7 @@ const emptyForm = {
   email: '',
   phone: '',
   status: 'available',
+  division: 'laporan',
   userId: '',
 };
 
@@ -69,6 +71,7 @@ export const AdminOfficerManagement: React.FC = () => {
       email: officer.email,
       phone: officer.phone,
       status: officer.status,
+      division: officer.division,
       userId: officer.userId ?? '',
     });
     setShowForm(true);
@@ -82,6 +85,7 @@ export const AdminOfficerManagement: React.FC = () => {
       email: form.email,
       phone: form.phone,
       status: form.status,
+      division: form.division,
       userId: form.userId || undefined,
     };
 
@@ -163,6 +167,7 @@ export const AdminOfficerManagement: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs text-blue-200 uppercase">Pangkat</th>
                 <th className="px-6 py-3 text-left text-xs text-blue-200 uppercase">Akun Login</th>
                 <th className="px-6 py-3 text-left text-xs text-blue-200 uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs text-blue-200 uppercase">Divisi</th>
                 <th className="px-6 py-3 text-left text-xs text-blue-200 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs text-blue-200 uppercase">Aksi</th>
               </tr>
@@ -174,6 +179,7 @@ export const AdminOfficerManagement: React.FC = () => {
                   <td className="px-6 py-4 text-blue-200">{o.rank}</td>
                   <td className="px-6 py-4 text-blue-200 text-sm">{linkedUserLabel(o.userId)}</td>
                   <td className="px-6 py-4 text-blue-200">{o.email}</td>
+                  <td className="px-6 py-4 text-blue-200">{OFFICER_DIVISION_LABELS[o.division]}</td>
                   <td className="px-6 py-4">
                     <Select value={o.status} onValueChange={(v) => updateStatus(o.id, v)}>
                       <SelectTrigger className="w-36 bg-blue-900/50 border-blue-500/50 text-white">
@@ -241,6 +247,19 @@ export const AdminOfficerManagement: React.FC = () => {
             <div className="space-y-2">
               <Label className="text-blue-200">Telepon</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required className="bg-blue-900/50 border-blue-500/50 text-white" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-blue-200">Divisi</Label>
+              <Select value={form.division} onValueChange={(v) => setForm({ ...form, division: v })}>
+                <SelectTrigger className="bg-blue-900/50 border-blue-500/50 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="laporan">Divisi Laporan</SelectItem>
+                  <SelectItem value="surat">Divisi Surat</SelectItem>
+                  <SelectItem value="pengaduan">Divisi Pengaduan</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label className="text-blue-200">Tautkan ke Akun Login</Label>

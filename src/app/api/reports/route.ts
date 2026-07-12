@@ -1,5 +1,5 @@
-import { listReports, createReport } from '@/lib/services/spkt';
-import { requireAuth } from '@/lib/auth-server';
+import { listReports, createReport, deleteAllReports } from '@/lib/services/spkt';
+import { requireAuth, requireRole } from '@/lib/auth-server';
 import { handleApi, jsonOk, ApiError } from '@/lib/api-response';
 import { parsePagination, buildPaginatedResult } from '@/lib/pagination';
 import { getOfficerByUserId } from '@/lib/services/spkt';
@@ -23,16 +23,7 @@ export const GET = handleApi(async (request) => {
     });
   }
 
-  const nik = searchParams.get('nik') ?? undefined;
-  const assignedTo = searchParams.get('assignedTo') ?? undefined;
-  const assignedOfficerId = searchParams.get('assignedOfficerId') ?? undefined;
-
-  if (
-    sessionUser.role === 'petugas' &&
-    !assignedOfficerId &&
-    !nik &&
-    !assignedTo
-  ) {
+  if (sessionUser.role === 'petugas') {
     const officer = getOfficerByUserId(sessionUser.id);
     const { items, total } = listReports(
       {
@@ -48,6 +39,10 @@ export const GET = handleApi(async (request) => {
       pagination: buildPaginatedResult(items, total, page, limit),
     });
   }
+
+  const nik = searchParams.get('nik') ?? undefined;
+  const assignedTo = searchParams.get('assignedTo') ?? undefined;
+  const assignedOfficerId = searchParams.get('assignedOfficerId') ?? undefined;
 
   const { items, total } = listReports({ nik, assignedTo, assignedOfficerId }, { page, limit });
   return jsonOk({
@@ -70,3 +65,13 @@ export const POST = handleApi(async (request) => {
 
   return jsonOk({ report }, 201);
 });
+
+export const DELETE = handleApi(async (request) => {
+  const sessionUser = await requireAuth(request);
+  requireRole(sessionUser, ['admin']);
+
+  const deleted = deleteAllReports();
+  return jsonOk({ message: 'Semua laporan berhasil dihapus', deleted });
+});
+
+

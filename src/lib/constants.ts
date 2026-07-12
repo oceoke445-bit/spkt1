@@ -18,7 +18,12 @@ export const letterTypes = [
   {
     id: 'kehilangan',
     name: 'Surat Keterangan Kehilangan',
-    description: 'Surat keterangan barang hilang',
+    description: 'Surat keterangan dokumen/barang hilang (KTP, SIM, KK, STNK, dll.)',
+  },
+  {
+    id: 'kerusakan',
+    name: 'Surat Keterangan Dokumen Rusak',
+    description: 'Surat keterangan/pengantar penggantian dokumen rusak (KTP, SIM, KK, dll.)',
   },
   {
     id: 'keramaian',

@@ -13,6 +13,7 @@ import { CreateReport } from '@/components/CreateReport';
 import { MyReports } from '@/components/MyReports';
 import { LetterService } from '@/components/LetterService';
 import { OfficerDashboard } from '@/components/OfficerDashboard';
+import { OfficerIncomingReports } from '@/components/OfficerIncomingReports';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { AdminStatistics } from '@/components/AdminStatistics';
 import { AdminControl } from '@/components/AdminControl';
@@ -23,14 +24,24 @@ import { Complaints } from '@/components/Complaints';
 import { Settings } from '@/components/Settings';
 import { AdminCSI } from '@/components/AdminCSI';
 import { AdminArticleManagement } from '@/components/AdminArticleManagement';
+import { AdminAuditLog } from '@/components/AdminAuditLog';
+
+import { getPetugasViews } from '@/lib/officerDivision';
+import type { OfficerDivision } from '@/lib/types/spkt';
 
 const VIEW_PARAM = 'view';
 
 const ROLE_VIEWS: Record<string, string[]> = {
   user: ['dashboard', 'create-report', 'my-reports', 'letter-service', 'complaints', 'information', 'settings'],
-  petugas: ['dashboard', 'incoming-reports', 'letter-service', 'complaints', 'information', 'settings'],
-  admin: ['dashboard', 'all-reports', 'letter-service', 'complaints', 'user-management', 'officer-management', 'statistics', 'csi-dashboard', 'information', 'article-management', 'settings'],
+  admin: ['dashboard', 'all-reports', 'letter-service', 'complaints', 'user-management', 'officer-management', 'audit-log', 'statistics', 'csi-dashboard', 'information', 'article-management', 'settings'],
 };
+
+function getAllowedViews(role: string, officerDivision?: OfficerDivision): string[] {
+  if (role === 'petugas') {
+    return getPetugasViews(officerDivision ?? 'laporan');
+  }
+  return ROLE_VIEWS[role] ?? ['dashboard'];
+}
 
 export default function DashboardApp() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -58,7 +69,7 @@ export default function DashboardApp() {
         navigate('dashboard');
         return;
       }
-      const allowed = ROLE_VIEWS[user.role] ?? ['dashboard'];
+      const allowed = getAllowedViews(user.role, user.officerDivision);
       if (!allowed.includes(view)) {
         navigate('dashboard');
       }
@@ -108,9 +119,9 @@ export default function DashboardApp() {
     if (user.role === 'petugas') {
       switch (currentView) {
         case 'dashboard':
-          return <OfficerDashboard />;
+          return <OfficerDashboard onNavigate={navigate} />;
         case 'incoming-reports':
-          return <OfficerDashboard />;
+          return <OfficerIncomingReports />;
         case 'letter-service':
           return <LetterService />;
         case 'complaints':
@@ -120,7 +131,7 @@ export default function DashboardApp() {
         case 'settings':
           return <Settings />;
         default:
-          return <OfficerDashboard />;
+          return <OfficerDashboard onNavigate={navigate} />;
       }
     }
 
@@ -138,6 +149,8 @@ export default function DashboardApp() {
           return <AdminUserManagement />;
         case 'officer-management':
           return <AdminOfficerManagement />;
+        case 'audit-log':
+          return <AdminAuditLog />;
         case 'statistics':
           return <AdminStatistics />;
         case 'csi-dashboard':

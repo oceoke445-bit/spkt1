@@ -1,4 +1,11 @@
-import { getReportById, updateReport, updateUserReport, deleteUserReport, getOfficerById } from '@/lib/services/spkt';
+import {
+  getReportById,
+  updateReport,
+  updateUserReport,
+  deleteUserReport,
+  getOfficerById,
+  getOfficerByUserId,
+} from '@/lib/services/spkt';
 import { requireAuth, requireRole } from '@/lib/auth-server';
 import { handleApi, jsonOk, ApiError } from '@/lib/api-response';
 
@@ -44,12 +51,44 @@ export const PATCH = handleApi(async (request, context: { params: Promise<{ id: 
 
   requireRole(sessionUser, ['petugas', 'admin']);
 
+  if (sessionUser.role === 'petugas') {
+    const existing = getReportById(id);
+    if (!existing) {
+      throw new ApiError(404, 'Laporan tidak ditemukan');
+    }
+
+    const officer = getOfficerByUserId(sessionUser.id);
+    const officerName = officer?.name ?? sessionUser.name;
+    if (!officer || officer.division !== 'laporan') {
+      throw new ApiError(403, 'Hanya petugas divisi laporan yang dapat memproses laporan');
+    }
+    const isAssignedToOfficer =
+      (officer?.id && existing.assignedOfficerId === officer.id) ||
+      (!existing.assignedOfficerId && existing.assignedTo === officerName);
+
+    if (!isAssignedToOfficer) {
+      throw new ApiError(403, 'Laporan ini belum ditugaskan kepada Anda');
+    }
+
+    const report = updateReport(id, {
+      status: body.status,
+      notes: body.notes,
+      timelineNote: body.timelineNote,
+      timelineOfficer: sessionUser.name,
+    });
+    return jsonOk({ report });
+  }
+
   let assignedTo = body.assignedTo;
   if (body.assignedOfficerId) {
     const officer = getOfficerById(body.assignedOfficerId);
-    if (officer) {
-      assignedTo = officer.name;
+    if (!officer) {
+      throw new ApiError(400, 'Petugas tidak ditemukan');
     }
+    if (officer.division !== 'laporan') {
+      throw new ApiError(400, 'Petugas harus dari divisi laporan');
+    }
+    assignedTo = officer.name;
   }
 
   const report = updateReport(id, {

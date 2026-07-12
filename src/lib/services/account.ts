@@ -32,8 +32,8 @@ export function exportUserData(userId: string, nik?: string): Record<string, unk
     },
     preferences: getUserPreferences(userId),
     reports: userNik ? listReports({ nik: userNik }).items : [],
-    letters: userNik ? listLetters(userNik).items : [],
-    complaints: userNik ? listComplaints(userNik).items : [],
+    letters: userNik ? listLetters({ nik: userNik }).items : [],
+    complaints: userNik ? listComplaints({ nik: userNik }).items : [],
     notifications: db
       .prepare('SELECT type, title, message, read, created_at FROM notifications WHERE user_id = ?')
       .all(userId),

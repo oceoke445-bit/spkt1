@@ -19,6 +19,7 @@ export const PATCH = handleApi(async (request, context: { params: Promise<{ id: 
     email: body.email,
     phone: body.phone,
     status: body.status,
+    division: body.division,
     userId: body.userId,
   });
 

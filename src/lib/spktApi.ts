@@ -83,6 +83,8 @@ export interface UpdateLetterPayload {
   status?: LetterStatus;
   pickupDate?: string | null;
   rejectionReason?: string | null;
+  assignedOfficerId?: string | null;
+  assignedTo?: string;
   purpose?: string;
   requesterPhone?: string;
   attachmentFiles?: string[];
@@ -160,6 +162,9 @@ export interface CreateComplaintPayload {
 export interface UpdateComplaintPayload {
   status?: ComplaintStatus;
   response?: string;
+  assignedOfficerId?: string | null;
+  assignedTo?: string;
+  timelineNote?: string;
 }
 
 export interface PaginatedMeta {
@@ -298,6 +303,11 @@ export const spktApi = {
       body: JSON.stringify(payload),
     }),
 
+  deleteAllReports: () =>
+    request<{ message: string; deleted: number }>('/reports', {
+      method: 'DELETE',
+    }),
+
   updateReport: (id: string, payload: UpdateReportPayload) =>
     request<{ report: Report }>(`/reports/${id}`, {
       method: 'PATCH',
@@ -406,6 +416,7 @@ export const spktApi = {
     email: string;
     phone: string;
     status?: string;
+    division?: string;
     userId?: string;
   }) =>
     request<{ message: string }>('/officers', {
@@ -415,7 +426,7 @@ export const spktApi = {
 
   updateOfficer: (
     id: string,
-    payload: Partial<{ name: string; rank: string; email: string; phone: string; status: string; userId: string | null }>,
+    payload: Partial<{ name: string; rank: string; email: string; phone: string; status: string; division: string; userId: string | null }>,
   ) =>
     request<{ message: string }>(`/officers/${id}`, {
       method: 'PATCH',
@@ -481,3 +492,4 @@ export const spktApi = {
     });
   },
 };
+

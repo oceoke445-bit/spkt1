@@ -1,4 +1,5 @@
 import { listComplaints, createComplaint } from '@/lib/services/spkt';
+import { getOfficerByUserId } from '@/lib/services/spkt';
 import { requireAuth } from '@/lib/auth-server';
 import { handleApi, jsonOk } from '@/lib/api-response';
 import { parsePagination, buildPaginatedResult } from '@/lib/pagination';
@@ -12,7 +13,22 @@ export const GET = handleApi(async (request) => {
   const { page, limit } = parsePagination(searchParams);
 
   if (sessionUser.role === 'user') {
-    const { items, total } = listComplaints(sessionUser.nik, { page, limit });
+    const { items, total } = listComplaints({ nik: sessionUser.nik }, { page, limit });
+    return jsonOk({
+      complaints: items,
+      pagination: buildPaginatedResult(items, total, page, limit),
+    });
+  }
+
+  if (sessionUser.role === 'petugas') {
+    const officer = getOfficerByUserId(sessionUser.id);
+    if (!officer) {
+      return jsonOk({
+        complaints: [],
+        pagination: buildPaginatedResult([], 0, page, limit),
+      });
+    }
+    const { items, total } = listComplaints({ officerInbox: { officerId: officer.id } }, { page, limit });
     return jsonOk({
       complaints: items,
       pagination: buildPaginatedResult(items, total, page, limit),
@@ -20,7 +36,7 @@ export const GET = handleApi(async (request) => {
   }
 
   const nik = searchParams.get('nik') ?? undefined;
-  const { items, total } = listComplaints(nik, { page, limit });
+  const { items, total } = listComplaints({ nik }, { page, limit });
   return jsonOk({
     complaints: items,
     pagination: buildPaginatedResult(items, total, page, limit),

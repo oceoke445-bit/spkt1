@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { ClipboardCheck, FileWarning, PartyPopper } from 'lucide-react';
+import { ClipboardCheck, FileWarning, PartyPopper, FileX2 } from 'lucide-react';
 
 /** Warna ikon konsisten di tema biru gelap — hindari putih polos / abu gelap */
 export const iconAccent = {
@@ -19,6 +19,7 @@ export const letterTypeIcons: Record<
 > = {
   skck: { icon: ClipboardCheck, ...iconAccent.sky },
   kehilangan: { icon: FileWarning, ...iconAccent.amber },
+  kerusakan: { icon: FileX2, ...iconAccent.rose },
   keramaian: { icon: PartyPopper, ...iconAccent.violet },
 };
 

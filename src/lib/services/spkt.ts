@@ -84,7 +84,9 @@ export interface ListReportsFilter {
   nik?: string;
   assignedTo?: string;
   assignedOfficerId?: string;
-  /** Petugas: antrian masuk (belum ditugaskan) + laporan yang ditugaskan ke petugas ini */
+  /** Semua laporan non-draft (untuk halaman Laporan Masuk petugas) */
+  excludeDraft?: boolean;
+  /** Petugas: hanya laporan yang sudah ditugaskan ke petugas ini */
   officerInbox?: {
     officerId?: string;
     officerName: string;
@@ -120,10 +122,13 @@ export function listReports(
     countSql += ' AND assigned_officer_id = @assignedOfficerId';
     params.assignedOfficerId = filter.assignedOfficerId;
   }
+  if (filter.excludeDraft) {
+    sql += " AND status != 'draft'";
+    countSql += " AND status != 'draft'";
+  }
   if (filter.officerInbox) {
     const inboxClause = ` AND status != 'draft' AND (
-      (COALESCE(assigned_officer_id, '') = '' AND COALESCE(assigned_to, '') = '')
-      OR assigned_to = @officerInboxName
+      assigned_to = @officerInboxName
       ${filter.officerInbox.officerId ? "OR assigned_officer_id = @officerInboxId" : ''}
     )`;
     sql += inboxClause;
@@ -454,8 +459,25 @@ export function deleteUserReport(id: string, reporterNik: string): void {
   db.prepare('DELETE FROM reports WHERE id = ?').run(id);
 }
 
+export function deleteAllReports(): number {
+  ensureDbReady();
+  db.exec('BEGIN');
+  try {
+    db.prepare('DELETE FROM report_timeline').run();
+    db.prepare('DELETE FROM report_evidence').run();
+    const result = db.prepare('DELETE FROM reports').run() as { changes: number };
+    const year = new Date().getFullYear();
+    db.prepare("UPDATE reference_counters SET last_value = 0 WHERE prefix = 'LP' AND year = ?").run(year);
+    db.exec('COMMIT');
+    return result.changes;
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
 export function listLetters(
-  nik?: string,
+  filter?: { nik?: string; officerInbox?: { officerId: string } },
   pagination?: ListPagination,
 ): { items: LetterRequest[]; total: number } {
   ensureDbReady();
@@ -464,9 +486,13 @@ export function listLetters(
   const params: Record<string, string> = {};
   const where: string[] = [];
 
-  if (nik) {
+  if (filter?.nik) {
     where.push('requester_nik = @nik');
-    params.nik = nik;
+    params.nik = filter.nik;
+  }
+  if (filter?.officerInbox?.officerId) {
+    where.push('assigned_officer_id = @officerInboxId');
+    params.officerInboxId = filter.officerInbox.officerId;
   }
   if (where.length) {
     const clause = ` WHERE ${where.join(' AND ')}`;
@@ -543,6 +569,10 @@ function hydrateLetter(row: Record<string, unknown>): LetterRequest {
     updatedAt: (row.updated_at as string | undefined) ?? (row.created_at as string),
     pickupDate: row.pickup_date as string | undefined,
     rejectionReason: row.rejection_reason as string | undefined,
+    assignedTo: row.assigned_to as string | undefined,
+    assignedOfficerId: row.assigned_officer_id as string | undefined,
+    assignedBy: row.assigned_by as string | undefined,
+    assignedAt: row.assigned_at as string | undefined,
     attachmentFiles: loadLetterAttachments(id),
     timeline: loadLetterTimeline(id),
   };
@@ -560,8 +590,13 @@ export interface UpdateLetterInput {
   status?: LetterStatus;
   pickupDate?: string | null;
   rejectionReason?: string | null;
+  assignedTo?: string;
+  assignedOfficerId?: string | null;
+  assignedBy?: string;
   timelineNote?: string;
   timelineOfficer?: string;
+  auditActorId?: string;
+  auditActorName?: string;
 }
 
 export function updateLetter(id: string, input: UpdateLetterInput): LetterRequest | null {
@@ -599,6 +634,24 @@ export function updateLetter(id: string, input: UpdateLetterInput): LetterReques
     updates.push('rejection_reason = @rejectionReason');
     params.rejectionReason = input.rejectionReason ?? null;
   }
+  if (input.assignedTo !== undefined) {
+    updates.push('assigned_to = @assignedTo');
+    params.assignedTo = input.assignedTo;
+    updates.push('assigned_at = @assignedAt');
+    params.assignedAt = ts;
+  }
+  if (input.assignedOfficerId !== undefined) {
+    updates.push('assigned_officer_id = @assignedOfficerId');
+    params.assignedOfficerId = input.assignedOfficerId;
+    if (input.assignedOfficerId) {
+      updates.push('assigned_at = @assignedAt');
+      params.assignedAt = ts;
+    }
+  }
+  if (input.assignedBy !== undefined) {
+    updates.push('assigned_by = @assignedBy');
+    params.assignedBy = input.assignedBy;
+  }
 
   if (updates.length === 1) {
     return getLetterById(id);
@@ -614,6 +667,14 @@ export function updateLetter(id: string, input: UpdateLetterInput): LetterReques
       input.timelineNote,
       input.timelineOfficer,
     );
+  } else if (input.assignedOfficerId && input.status === undefined) {
+    addLetterTimelineEvent(
+      id,
+      'Ditugaskan',
+      ts,
+      input.timelineNote,
+      input.timelineOfficer ?? input.assignedTo ?? undefined,
+    );
   }
 
   const updated = getLetterById(id)!;
@@ -623,6 +684,17 @@ export function updateLetter(id: string, input: UpdateLetterInput): LetterReques
       title: 'Status Surat Diperbarui',
       message: `Pengajuan ${updated.requestNumber}: ${LETTER_STATUS_TIMELINE_LABEL[input.status] ?? input.status}`,
       link: 'letter-service',
+    });
+  }
+
+  if (input.assignedOfficerId && input.auditActorId && input.auditActorName) {
+    createAuditLog({
+      actorId: input.auditActorId,
+      actorName: input.auditActorName,
+      action: 'assign_letter',
+      entityType: 'letter',
+      entityId: id,
+      details: `Ditugaskan ke officer ${input.assignedOfficerId}`,
     });
   }
 
@@ -765,18 +837,27 @@ export function updateUserLetter(id: string, requesterNik: string, input: Update
 }
 
 export function listComplaints(
-  nik?: string,
+  filter?: { nik?: string; officerInbox?: { officerId: string } },
   pagination?: ListPagination,
 ): { items: Complaint[]; total: number } {
   ensureDbReady();
   let sql = 'SELECT * FROM complaints';
   let countSql = 'SELECT COUNT(*) as c FROM complaints';
   const params: Record<string, string> = {};
+  const where: string[] = [];
 
-  if (nik) {
-    sql += ' WHERE submitter_nik = @nik';
-    countSql += ' WHERE submitter_nik = @nik';
-    params.nik = nik;
+  if (filter?.nik) {
+    where.push('submitter_nik = @nik');
+    params.nik = filter.nik;
+  }
+  if (filter?.officerInbox?.officerId) {
+    where.push('assigned_officer_id = @officerInboxId');
+    params.officerInboxId = filter.officerInbox.officerId;
+  }
+  if (where.length) {
+    const clause = ` WHERE ${where.join(' AND ')}`;
+    sql += clause;
+    countSql += clause;
   }
   sql += ' ORDER BY created_at DESC';
 
@@ -849,6 +930,10 @@ function hydrateComplaint(row: Record<string, unknown>): Complaint {
     updatedAt: row.updated_at as string,
     response: row.response as string | undefined,
     responseDate: row.response_date as string | undefined,
+    assignedTo: row.assigned_to as string | undefined,
+    assignedOfficerId: row.assigned_officer_id as string | undefined,
+    assignedBy: row.assigned_by as string | undefined,
+    assignedAt: row.assigned_at as string | undefined,
     files: loadComplaintFiles(id),
     timeline: loadComplaintTimeline(id),
   };
@@ -865,6 +950,9 @@ export function getComplaintById(id: string): Complaint | null {
 export interface UpdateComplaintInput {
   status?: ComplaintStatus;
   response?: string;
+  assignedTo?: string;
+  assignedOfficerId?: string | null;
+  assignedBy?: string;
   timelineNote?: string;
   timelineOfficer?: string;
   auditActorId?: string;
@@ -904,6 +992,24 @@ export function updateComplaint(id: string, input: UpdateComplaintInput): Compla
     updates.push('response_date = @responseDate');
     params.responseDate = input.response ? ts : null;
   }
+  if (input.assignedTo !== undefined) {
+    updates.push('assigned_to = @assignedTo');
+    params.assignedTo = input.assignedTo;
+    updates.push('assigned_at = @assignedAt');
+    params.assignedAt = ts;
+  }
+  if (input.assignedOfficerId !== undefined) {
+    updates.push('assigned_officer_id = @assignedOfficerId');
+    params.assignedOfficerId = input.assignedOfficerId;
+    if (input.assignedOfficerId) {
+      updates.push('assigned_at = @assignedAt');
+      params.assignedAt = ts;
+    }
+  }
+  if (input.assignedBy !== undefined) {
+    updates.push('assigned_by = @assignedBy');
+    params.assignedBy = input.assignedBy;
+  }
 
   db.prepare(`UPDATE complaints SET ${updates.join(', ')} WHERE id = @id`).run(params);
 
@@ -914,6 +1020,14 @@ export function updateComplaint(id: string, input: UpdateComplaintInput): Compla
       ts,
       input.timelineNote,
       input.timelineOfficer,
+    );
+  } else if (input.assignedOfficerId && input.status === undefined) {
+    addComplaintTimelineEvent(
+      id,
+      'Ditugaskan',
+      ts,
+      input.timelineNote,
+      input.timelineOfficer ?? input.assignedTo ?? undefined,
     );
   } else if (input.response && input.response !== existing.response) {
     addComplaintTimelineEvent(id, 'Tanggapan diberikan', ts, input.timelineNote, input.timelineOfficer);
@@ -942,6 +1056,17 @@ export function updateComplaint(id: string, input: UpdateComplaintInput): Compla
       entityType: 'complaint',
       entityId: id,
       details: `Status ${existing.status} → ${input.status}`,
+    });
+  }
+
+  if (input.assignedOfficerId && input.auditActorId && input.auditActorName) {
+    createAuditLog({
+      actorId: input.auditActorId,
+      actorName: input.auditActorName,
+      action: 'assign_complaint',
+      entityType: 'complaint',
+      entityId: id,
+      details: `Ditugaskan ke officer ${input.assignedOfficerId}`,
     });
   }
 
@@ -1013,19 +1138,54 @@ export function listOfficers(): Officer[] {
 
   return rows.map((row) => {
     const id = row.id as string;
-    const assignedCases = (
-      db
-        .prepare(
-          `SELECT COUNT(*) as c FROM reports
-           WHERE assigned_officer_id = ? AND status NOT IN ('completed', 'rejected')`,
-        )
-        .get(id) as { c: number }
-    ).c;
-    const completedCases = (
-      db
-        .prepare(`SELECT COUNT(*) as c FROM reports WHERE assigned_officer_id = ? AND status = 'completed'`)
-        .get(id) as { c: number }
-    ).c;
+    const division = (row.division as Officer['division']) ?? 'laporan';
+
+    let assignedCases = 0;
+    let completedCases = 0;
+
+    if (division === 'laporan') {
+      assignedCases = (
+        db
+          .prepare(
+            `SELECT COUNT(*) as c FROM reports
+             WHERE assigned_officer_id = ? AND status NOT IN ('completed', 'rejected')`,
+          )
+          .get(id) as { c: number }
+      ).c;
+      completedCases = (
+        db
+          .prepare(`SELECT COUNT(*) as c FROM reports WHERE assigned_officer_id = ? AND status = 'completed'`)
+          .get(id) as { c: number }
+      ).c;
+    } else if (division === 'surat') {
+      assignedCases = (
+        db
+          .prepare(
+            `SELECT COUNT(*) as c FROM letter_requests
+             WHERE assigned_officer_id = ? AND status NOT IN ('completed', 'rejected')`,
+          )
+          .get(id) as { c: number }
+      ).c;
+      completedCases = (
+        db
+          .prepare(`SELECT COUNT(*) as c FROM letter_requests WHERE assigned_officer_id = ? AND status = 'completed'`)
+          .get(id) as { c: number }
+      ).c;
+    } else {
+      assignedCases = (
+        db
+          .prepare(
+            `SELECT COUNT(*) as c FROM complaints
+             WHERE assigned_officer_id = ? AND status NOT IN ('resolved', 'closed')`,
+          )
+          .get(id) as { c: number }
+      ).c;
+      completedCases = (
+        db
+          .prepare(`SELECT COUNT(*) as c FROM complaints WHERE assigned_officer_id = ? AND status = 'resolved'`)
+          .get(id) as { c: number }
+      ).c;
+    }
 
     return {
       id,
@@ -1035,6 +1195,7 @@ export function listOfficers(): Officer[] {
       email: row.email as string,
       phone: row.phone as string,
       status: row.status as Officer['status'],
+      division,
       assignedCases,
       completedCases,
     };

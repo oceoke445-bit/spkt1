@@ -1,12 +1,12 @@
 import { db, ensureDbReady } from '@/lib/db';
 
-const REFERENCE_PREFIXES = ['LP', 'ADU', 'SKCK', 'SKH', 'IZIN'] as const;
+const REFERENCE_PREFIXES = ['LP', 'ADU', 'SKCK', 'SKH', 'SKR', 'IZIN'] as const;
 let countersSynced = false;
 
 function getReferenceTable(prefix: string): { table: string; column: string } | null {
   if (prefix === 'LP') return { table: 'reports', column: 'report_number' };
   if (prefix === 'ADU') return { table: 'complaints', column: 'complaint_number' };
-  if (['SKCK', 'SKH', 'IZIN'].includes(prefix)) {
+  if (['SKCK', 'SKH', 'SKR', 'IZIN'].includes(prefix)) {
     return { table: 'letter_requests', column: 'request_number' };
   }
   return null;
@@ -96,7 +96,13 @@ export function allocateReportNumber(): string {
 
 export function allocateLetterNumber(letterTypeId: string): string {
   const prefix =
-    letterTypeId === 'skck' ? 'SKCK' : letterTypeId === 'kehilangan' ? 'SKH' : 'IZIN';
+    letterTypeId === 'skck'
+      ? 'SKCK'
+      : letterTypeId === 'kehilangan'
+        ? 'SKH'
+        : letterTypeId === 'kerusakan'
+          ? 'SKR'
+          : 'IZIN';
   return allocateReferenceNumber(prefix);
 }
 

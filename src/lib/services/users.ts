@@ -317,6 +317,7 @@ export interface CreateOfficerInput {
   email: string;
   phone: string;
   status?: 'available' | 'busy' | 'offline';
+  division?: 'laporan' | 'surat' | 'pengaduan';
   userId?: string;
 }
 
@@ -324,8 +325,8 @@ export function createOfficer(input: CreateOfficerInput): void {
   ensureDbReady();
   const id = `OFF${Date.now()}`;
   db.prepare(
-    `INSERT INTO officers (id, user_id, name, rank, email, phone, status)
-     VALUES (@id, @userId, @name, @rank, @email, @phone, @status)`,
+    `INSERT INTO officers (id, user_id, name, rank, email, phone, status, division)
+     VALUES (@id, @userId, @name, @rank, @email, @phone, @status, @division)`,
   ).run({
     id,
     userId: input.userId ?? null,
@@ -334,6 +335,7 @@ export function createOfficer(input: CreateOfficerInput): void {
     email: input.email,
     phone: input.phone,
     status: input.status ?? 'available',
+    division: input.division ?? 'laporan',
   });
 
   if (input.userId) {
@@ -372,6 +374,10 @@ export function updateOfficer(
   if (input.userId !== undefined) {
     updates.push('user_id = @userId');
     params.userId = input.userId ?? null;
+  }
+  if (input.division !== undefined) {
+    updates.push('division = @division');
+    params.division = input.division;
   }
 
   if (updates.length === 0) return;

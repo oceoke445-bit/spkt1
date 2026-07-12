@@ -1,5 +1,6 @@
 import { db, ensureDbReady } from '@/lib/db';
 import type { DbUser } from '@/lib/types/spkt';
+import type { OfficerDivision } from '@/lib/types/spkt';
 import { ApiError } from '@/lib/api-response';
 
 const SESSION_COOKIE = 'spkt_session';
@@ -101,8 +102,17 @@ export function requireRole(user: DbUser, roles: DbUser['role'][]): void {
   }
 }
 
+export function getOfficerMetaForUser(userId: string): { officerId: string; division: OfficerDivision } | null {
+  ensureDbReady();
+  const row = db
+    .prepare('SELECT id, division FROM officers WHERE user_id = ?')
+    .get(userId) as { id: string; division: OfficerDivision } | undefined;
+  if (!row) return null;
+  return { officerId: row.id, division: row.division ?? 'laporan' };
+}
+
 export function toPublicUser(user: DbUser) {
-  return {
+  const base = {
     id: user.id,
     name: user.name,
     email: user.email,
@@ -110,5 +120,16 @@ export function toPublicUser(user: DbUser) {
     nik: user.nik,
     phone: user.phone,
     avatarUrl: user.avatarUrl,
+  };
+
+  if (user.role !== 'petugas') {
+    return base;
+  }
+
+  const officerMeta = getOfficerMetaForUser(user.id);
+  return {
+    ...base,
+    officerId: officerMeta?.officerId,
+    officerDivision: officerMeta?.division ?? 'laporan',
   };
 }

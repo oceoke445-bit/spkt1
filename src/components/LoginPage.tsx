@@ -58,15 +58,22 @@ export const LoginPage: React.FC = () => {
   };
 
   const quickLogin = (role: string) => {
+    const password = 'spkt123';
     if (role === 'user') {
       setEmail('user@spkt.id');
-      setPassword('spkt123');
-    } else if (role === 'petugas') {
+      setPassword(password);
+    } else if (role === 'petugas-laporan') {
       setEmail('petugas@spkt.id');
-      setPassword('spkt123');
+      setPassword(password);
+    } else if (role === 'petugas-surat') {
+      setEmail('petugas-surat@spkt.id');
+      setPassword(password);
+    } else if (role === 'petugas-pengaduan') {
+      setEmail('petugas-pengaduan@spkt.id');
+      setPassword(password);
     } else if (role === 'admin') {
       setEmail('admin@spkt.id');
-      setPassword('spkt123');
+      setPassword(password);
     }
   };
 
@@ -184,10 +191,12 @@ export const LoginPage: React.FC = () => {
             {!isProduction && (
               <div className="mt-6 pt-6 border-t border-blue-500/40">
                 <p className="text-sm text-blue-300 mb-3 text-center">Login demo:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button type="button" variant="outline" size="sm" onClick={() => quickLogin('user')} className="text-xs border-blue-400/60 text-blue-100 bg-blue-800/40">User</Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => quickLogin('petugas')} className="text-xs border-blue-400/60 text-blue-100 bg-blue-800/40">Petugas</Button>
                   <Button type="button" variant="outline" size="sm" onClick={() => quickLogin('admin')} className="text-xs border-blue-400/60 text-blue-100 bg-blue-800/40">Admin</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => quickLogin('petugas-laporan')} className="text-xs border-blue-400/60 text-blue-100 bg-blue-800/40">Petugas Laporan</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => quickLogin('petugas-surat')} className="text-xs border-blue-400/60 text-blue-100 bg-blue-800/40">Petugas Surat</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => quickLogin('petugas-pengaduan')} className="col-span-2 text-xs border-blue-400/60 text-blue-100 bg-blue-800/40">Petugas Pengaduan</Button>
                 </div>
               </div>
             )}

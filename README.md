@@ -23,7 +23,9 @@ Database dan seed data dibuat otomatis di `data/spkt.db` saat pertama kali API d
 | Role | Email | Password |
 |------|-------|----------|
 | Masyarakat | `user@spkt.id` | `spkt123` |
-| Petugas | `petugas@spkt.id` | `spkt123` |
+| Petugas Laporan | `petugas@spkt.id` | `spkt123` |
+| Petugas Surat | `petugas-surat@spkt.id` | `spkt123` |
+| Petugas Pengaduan | `petugas-pengaduan@spkt.id` | `spkt123` |
 | Admin | `admin@spkt.id` | `spkt123` |
 
 ### Environment (opsional)
@@ -50,13 +52,7 @@ Salin `.env.example` ke `.env.local` jika perlu override.
 
 ## Dokumentasi
 
-- [Penjelasan flow & proses aplikasi](docs/penjelasan.md)
-- [Presentasi PPT — indeks](docs/presentasi-ppt.md)
-  - [Bisnis & fitur](docs/presentasi-ppt-bisnis.md)
-  - [Arsitektur teknis (DB, BE, FE)](docs/presentasi-ppt-teknis.md)
-  - [Penutup & desain](docs/presentasi-ppt-penutup.md)
-- [Flow & diagram ringkas](docs/FLOW.md)
-- [API contract](docs/API.md)
+- **[Diagram & alur aplikasi lengkap](docs/DIAGRAM_ALUR_APLIKASI.md)** — role, menu, laporan, surat, pengaduan, assign, API, database
 
 ## Struktur Penting
 
