@@ -400,7 +400,7 @@ function migrateSchema() {
   syncInfoArticles();
   migratePlainPasswords();
   linkOfficersToUsers();
-  ensureDemoPetugasAccounts();
+  ensureAllDemoAccounts();
   backfillLetterTimelines();
   backfillComplaintTimelines();
 }
@@ -413,12 +413,18 @@ function backfillOfficerDivisions() {
   db.prepare("UPDATE officers SET division = 'laporan' WHERE division IS NULL OR division = ''").run();
 }
 
-function ensureDemoPetugasAccounts() {
+function ensureAllDemoAccounts() {
   const demoPassword = hashPassword('spkt123');
 
+  const updateByEmail = db.prepare(
+    `UPDATE users
+     SET password = @password, active = 1, name = @name, role = @role
+     WHERE LOWER(TRIM(email)) = LOWER(TRIM(@email))`,
+  );
+
   const insertUser = db.prepare(
-    `INSERT OR IGNORE INTO users (id, email, password, name, nik, phone, role)
-     VALUES (@id, @email, @password, @name, NULL, @phone, 'petugas')`,
+    `INSERT INTO users (id, email, password, name, nik, phone, role, active)
+     VALUES (@id, @email, @password, @name, @nik, @phone, @role, 1)`,
   );
 
   const upsertOfficer = db.prepare(
@@ -433,32 +439,54 @@ function ensureDemoPetugasAccounts() {
        division = excluded.division`,
   );
 
-  const demoAccounts = [
+  const demoUsers = [
     {
-      userId: 'U002',
+      id: 'U001',
+      email: 'user@spkt.id',
+      name: 'Budi Santoso',
+      nik: '3201012345678901',
+      phone: '081234567890',
+      role: 'user',
+    },
+    {
+      id: 'U002',
       email: 'petugas@spkt.id',
       name: 'Ipda. Ahmad Wijaya',
+      nik: null,
       phone: '081234567890',
+      role: 'petugas',
       officerId: 'OFF001',
       rank: 'Inspektur Polisi Dua',
       status: 'busy',
       division: 'laporan',
     },
     {
-      userId: 'U004',
+      id: 'U003',
+      email: 'admin@spkt.id',
+      name: 'Kompol. Sarah Putri',
+      nik: null,
+      phone: null,
+      role: 'admin',
+    },
+    {
+      id: 'U004',
       email: 'petugas-surat@spkt.id',
       name: 'Bripka. Andi Pratama',
+      nik: null,
       phone: '081234567891',
+      role: 'petugas',
       officerId: 'OFF002',
       rank: 'Brigadir Polisi Kepala',
       status: 'available',
       division: 'surat',
     },
     {
-      userId: 'U005',
+      id: 'U005',
       email: 'petugas-pengaduan@spkt.id',
       name: 'Aipda. Rini Kusuma',
+      nik: null,
       phone: '081234567892',
+      role: 'petugas',
       officerId: 'OFF003',
       rank: 'Ajun Inspektur Polisi Dua',
       status: 'available',
@@ -466,25 +494,47 @@ function ensureDemoPetugasAccounts() {
     },
   ] as const;
 
-  for (const account of demoAccounts) {
-    insertUser.run({
-      id: account.userId,
+  for (const account of demoUsers) {
+    const updated = updateByEmail.run({
       email: account.email,
       password: demoPassword,
       name: account.name,
-      phone: account.phone,
+      role: account.role,
     });
 
-    upsertOfficer.run({
-      id: account.officerId,
-      userId: account.userId,
-      name: account.name,
-      rank: account.rank,
-      email: account.email,
-      phone: account.phone,
-      status: account.status,
-      division: account.division,
-    });
+    if (updated.changes === 0) {
+      try {
+        insertUser.run({
+          id: account.id,
+          email: account.email,
+          password: demoPassword,
+          name: account.name,
+          nik: account.nik,
+          phone: account.phone,
+          role: account.role,
+        });
+      } catch {
+        updateByEmail.run({
+          email: account.email,
+          password: demoPassword,
+          name: account.name,
+          role: account.role,
+        });
+      }
+    }
+
+    if ('officerId' in account && account.officerId) {
+      upsertOfficer.run({
+        id: account.officerId,
+        userId: account.id,
+        name: account.name,
+        rank: account.rank,
+        email: account.email,
+        phone: account.phone ?? '',
+        status: account.status,
+        division: account.division,
+      });
+    }
   }
 }
 
@@ -993,6 +1043,22 @@ export function ensureDbReady() {
     initDatabase();
     initialized = true;
   }
+}
+
+export function getDatabaseInfo() {
+  ensureDbReady();
+  const userCount = (db.prepare('SELECT COUNT(*) as c FROM users').get() as { c: number }).c;
+  const demoUser = db
+    .prepare('SELECT email, active FROM users WHERE LOWER(TRIM(email)) = ?')
+    .get('user@spkt.id') as { email: string; active: number } | undefined;
+
+  return {
+    dbPath,
+    dataDir,
+    userCount,
+    hasDemoUser: Boolean(demoUser),
+    demoUserActive: demoUser?.active === 1,
+  };
 }
 
 export { db, isDatabaseDisabled };

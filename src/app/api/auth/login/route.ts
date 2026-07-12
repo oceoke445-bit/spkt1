@@ -21,7 +21,9 @@ export async function POST(request: Request) {
       return jsonError(new Error('Terlalu banyak percobaan login. Coba lagi dalam 1 menit.'));
     }
 
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email dan password wajib diisi' }, { status: 400 });

@@ -48,9 +48,10 @@ export function getUserById(id: string): (DbUser & { address?: string; active?: 
 
 export function authenticateUser(email: string, password: string): DbUser | null {
   ensureDbReady();
+  const normalizedEmail = email.trim().toLowerCase();
   const row = db
-    .prepare('SELECT id, email, password, name, nik, phone, role, active FROM users WHERE email = ?')
-    .get(email) as
+    .prepare('SELECT id, email, password, name, nik, phone, role, active FROM users WHERE LOWER(TRIM(email)) = ?')
+    .get(normalizedEmail) as
     | {
         id: string;
         email: string;
@@ -63,7 +64,7 @@ export function authenticateUser(email: string, password: string): DbUser | null
       }
     | undefined;
 
-  if (!row || row.active !== 1 || !verifyPassword(password, row.password)) {
+  if (!row || row.active === 0 || !verifyPassword(password, row.password)) {
     return null;
   }
 
