@@ -1,5 +1,14 @@
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
+CREATE TABLE users (
+      id VARCHAR(100) PRIMARY KEY,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      nik LONGTEXT,
+      phone LONGTEXT,
+      role VARCHAR(255) NOT NULL 
+    , active INTEGER NOT NULL DEFAULT 1, address LONGTEXT, avatar_url LONGTEXT, preferences_json VARCHAR(255) NOT NULL DEFAULT '{}', totp_secret LONGTEXT, totp_enabled INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE audit_logs (
       id VARCHAR(100) PRIMARY KEY,
       actor_id VARCHAR(255) NOT NULL,
@@ -439,15 +448,7 @@ INSERT INTO `user_activities` VALUES(83,'U001','create_complaint','ADU/008/V/202
 INSERT INTO `user_activities` VALUES(84,'U003','login',NULL,'2026-06-28T15:05:31.716Z');
 INSERT INTO `user_activities` VALUES(85,'U005','login',NULL,'2026-06-28T15:06:23.918Z');
 INSERT INTO `user_activities` VALUES(86,'U001','login',NULL,'2026-06-28T15:12:59.678Z');
-CREATE TABLE users (
-      id VARCHAR(100) PRIMARY KEY,
-      email VARCHAR(255) NOT NULL UNIQUE,
-      password VARCHAR(255) NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      nik LONGTEXT,
-      phone LONGTEXT,
-      role VARCHAR(255) NOT NULL CHECK(role IN ('user', 'petugas', 'admin'))
-    , active INTEGER NOT NULL DEFAULT 1, address LONGTEXT, avatar_url LONGTEXT, preferences_json VARCHAR(255) NOT NULL DEFAULT '{}', totp_secret LONGTEXT, totp_enabled INTEGER NOT NULL DEFAULT 0);
+
 INSERT INTO `users` VALUES('U001','user@spkt.id','scrypt:618a98596a3963d84daaba4d3e372818:188c9e78ac90a39e008ac1296bec148e88255682f847535e9093baca42c6d926aaa1bb2f29803a4142c809e509a6a96d66fd2a77f9e16bf655c2d4c16f35f4fd','Budi Santoso','3201012345678901','081234567890','user',1,NULL,NULL,'{"email":true,"push":true,"sms":false,"reportUpdate":true,"letterReady":true,"systemNews":false,"darkMode":true}',NULL,0);
 INSERT INTO `users` VALUES('U002','petugas@spkt.id','scrypt:618a98596a3963d84daaba4d3e372818:188c9e78ac90a39e008ac1296bec148e88255682f847535e9093baca42c6d926aaa1bb2f29803a4142c809e509a6a96d66fd2a77f9e16bf655c2d4c16f35f4fd','Ipda. Ahmad Wijaya',NULL,'081234567890','petugas',1,NULL,'U002_1782651961670_3916ab93_Cuplikan_layar_2026-06-14_101814.png','{"email":true,"push":true,"sms":false,"reportUpdate":true,"letterReady":true,"systemNews":false,"darkMode":true}',NULL,0);
 INSERT INTO `users` VALUES('U003','admin@spkt.id','scrypt:618a98596a3963d84daaba4d3e372818:188c9e78ac90a39e008ac1296bec148e88255682f847535e9093baca42c6d926aaa1bb2f29803a4142c809e509a6a96d66fd2a77f9e16bf655c2d4c16f35f4fd','Kompol. Sarah Putri',NULL,'','admin',1,'',NULL,'{"email":true,"push":true,"sms":true,"reportUpdate":true,"letterReady":true,"systemNews":true,"publicProfile":false,"activityHistory":true}',NULL,0);
@@ -464,16 +465,16 @@ CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 CREATE INDEX idx_notifications_user ON notifications(user_id);
 CREATE INDEX idx_audit_created ON audit_logs(created_at);
 CREATE INDEX idx_user_activities_user ON user_activities(user_id, created_at);
-DELETE FROM "sqlite_sequence";
-INSERT INTO `sqlite_sequence` VALUES('survey_dimensions',2600);
-INSERT INTO `sqlite_sequence` VALUES('report_timeline',43);
-INSERT INTO `sqlite_sequence` VALUES('report_evidence',9);
-INSERT INTO `sqlite_sequence` VALUES('satisfaction_surveys',2);
-INSERT INTO `sqlite_sequence` VALUES('survey_responses',10);
-INSERT INTO `sqlite_sequence` VALUES('letter_timeline',5);
-INSERT INTO `sqlite_sequence` VALUES('complaint_timeline',12);
-INSERT INTO `sqlite_sequence` VALUES('user_activities',86);
-INSERT INTO `sqlite_sequence` VALUES('letter_attachments',2);
-INSERT INTO `sqlite_sequence` VALUES('complaint_files',6);
+
+
+
+
+
+
+
+
+
+
+
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
