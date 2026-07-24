@@ -1,13 +1,14 @@
+SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 CREATE TABLE audit_logs (
-      id TEXT PRIMARY KEY,
-      actor_id TEXT NOT NULL,
-      actor_name TEXT NOT NULL,
-      action TEXT NOT NULL,
-      entity_type TEXT NOT NULL,
-      entity_id TEXT NOT NULL,
+      id VARCHAR(100) PRIMARY KEY,
+      actor_id VARCHAR(100) NOT NULL,
+      actor_name VARCHAR(255) NOT NULL,
+      action VARCHAR(100) NOT NULL,
+      entity_type VARCHAR(100) NOT NULL,
+      entity_id VARCHAR(100) NOT NULL,
       details TEXT,
-      created_at TEXT NOT NULL
+      created_at VARCHAR(100) NOT NULL
     );
 INSERT INTO "audit_logs" VALUES('AUD178142229712257s5','U003','Kompol. Sarah Putri','update_user','user','U001','{"active":false}','2026-06-14T07:31:37.122Z');
 INSERT INTO "audit_logs" VALUES('AUD17814224084577x4e','U003','Kompol. Sarah Putri','update_user','user','U001','{"active":true}','2026-06-14T07:33:28.458Z');
@@ -55,7 +56,7 @@ INSERT INTO "complaint_timeline" VALUES(10,'C1782659074174','Pengaduan dibuat','
 INSERT INTO "complaint_timeline" VALUES(11,'C1782659074995','Pengaduan dibuat','2026-06-28T15:04:34.997Z',NULL,NULL);
 INSERT INTO "complaint_timeline" VALUES(12,'C1782659074995','Sedang ditinjau','2026-06-28T15:05:56.548Z','Ditugaskan ke petugas','SUPERADMIN');
 CREATE TABLE complaints (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       complaint_number TEXT NOT NULL UNIQUE,
       submitter_user_id TEXT,
       submitter_name TEXT NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE complaints (
       status TEXT NOT NULL DEFAULT 'submitted',
       response TEXT,
       response_date TEXT,
-      created_at TEXT NOT NULL,
+      created_at VARCHAR(100) NOT NULL,
       updated_at TEXT NOT NULL, assigned_officer_id TEXT, assigned_to TEXT, assigned_by TEXT, assigned_at TEXT,
       FOREIGN KEY (submitter_user_id) REFERENCES users(id)
     );
@@ -79,7 +80,7 @@ INSERT INTO "complaints" VALUES('C1782657006527','ADU/006/V/2026','U001','Budi S
 INSERT INTO "complaints" VALUES('C1782659074174','ADU/007/V/2026','U001','Budi Santoso','3201012345678901','sistem','aplikasinya eror','karena lupa sandi','submitted',NULL,NULL,'2026-06-28T15:04:34.178Z','2026-06-28T15:04:34.178Z',NULL,NULL,NULL,NULL);
 INSERT INTO "complaints" VALUES('C1782659074995','ADU/008/V/2026','U001','Budi Santoso','3201012345678901','sistem','aplikasinya eror','karena lupa sandi','reviewing',NULL,NULL,'2026-06-28T15:04:34.997Z','2026-06-28T15:05:56.548Z','OFF003','Aipda. Rini Kusuma','SUPERADMIN','2026-06-28T15:05:56.548Z');
 CREATE TABLE info_articles (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       title TEXT NOT NULL,
       category TEXT NOT NULL,
       description TEXT NOT NULL,
@@ -140,7 +141,7 @@ CREATE TABLE letter_attachments (
 INSERT INTO "letter_attachments" VALUES(1,'L1782655369356','U001_1782655369073_408c2ad1_Cuplikan_layar_2026-06-14_101814.png');
 INSERT INTO "letter_attachments" VALUES(2,'L1782657451463','U001_1782657449564_1005e34a_Cuplikan_layar_2026-06-14_100021.png');
 CREATE TABLE letter_requests (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       request_number TEXT NOT NULL UNIQUE,
       requester_user_id TEXT,
       requester_name TEXT NOT NULL,
@@ -149,7 +150,7 @@ CREATE TABLE letter_requests (
       purpose TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'submitted',
       pickup_date TEXT,
-      created_at TEXT NOT NULL, rejection_reason TEXT, updated_at TEXT, requester_phone TEXT, assigned_officer_id TEXT, assigned_to TEXT, assigned_by TEXT, assigned_at TEXT,
+      created_at VARCHAR(100) NOT NULL, rejection_reason TEXT, updated_at TEXT, requester_phone TEXT, assigned_officer_id TEXT, assigned_to TEXT, assigned_by TEXT, assigned_at TEXT,
       FOREIGN KEY (requester_user_id) REFERENCES users(id)
     );
 INSERT INTO "letter_requests" VALUES('L001','SKCK/001/V/2026','U001','Budi Santoso','3201012345678901','SKCK','Melamar pekerjaan','ready','2026-05-22T00:00:00','2026-05-15T10:00:00',NULL,'2026-05-15T10:00:00',NULL,NULL,NULL,NULL,NULL);
@@ -171,14 +172,14 @@ INSERT INTO "letter_timeline" VALUES(3,'L002','Siap diambil','2026-06-28T13:27:0
 INSERT INTO "letter_timeline" VALUES(4,'L1782655369356','Pengajuan dikirim','2026-06-28T14:02:49.359Z',NULL,NULL);
 INSERT INTO "letter_timeline" VALUES(5,'L1782657451463','Pengajuan dikirim','2026-06-28T14:37:31.465Z',NULL,NULL);
 CREATE TABLE notifications (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       user_id TEXT NOT NULL,
       type TEXT NOT NULL,
       title TEXT NOT NULL,
       message TEXT NOT NULL,
       link TEXT,
       read INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL,
+      created_at VARCHAR(100) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 INSERT INTO "notifications" VALUES('N1781415691787jyhz','U001','report_status','Status Laporan Diperbarui','Laporan LP/005/V/2026 sekarang: Diverifikasi','my-reports',0,'2026-06-14T05:41:31.787Z');
@@ -200,7 +201,7 @@ INSERT INTO "notifications" VALUES('N17826571014033f89','U001','complaint_update
 INSERT INTO "notifications" VALUES('N1782658298365emvc','U001','report_status','Status Laporan Diperbarui','Laporan LP/002/V/2026 sekarang: Diproses','my-reports',0,'2026-06-28T14:51:38.365Z');
 INSERT INTO "notifications" VALUES('N1782659156552sjwi','U001','complaint_update','Pengaduan Ditanggapi','Pengaduan ADU/008/V/2026 telah diperbarui','complaints',0,'2026-06-28T15:05:56.552Z');
 CREATE TABLE officers (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       user_id TEXT,
       name TEXT NOT NULL,
       rank TEXT NOT NULL,
@@ -263,7 +264,7 @@ INSERT INTO "report_timeline" VALUES(41,'R1782656300278','Selesai','2026-06-28T1
 INSERT INTO "report_timeline" VALUES(42,'R1782655234803','Diproses','2026-06-28T14:51:38.363Z','cari orangnya','Ipda. Ahmad Wijaya');
 INSERT INTO "report_timeline" VALUES(43,'R1782655234803','Diproses','2026-06-28T14:51:39.351Z','cari orangnya','Ipda. Ahmad Wijaya');
 CREATE TABLE reports (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       report_number TEXT NOT NULL UNIQUE,
       reporter_user_id TEXT,
       reporter_name TEXT NOT NULL,
@@ -279,7 +280,7 @@ CREATE TABLE reports (
       assigned_by TEXT,
       assigned_at TEXT,
       notes TEXT,
-      created_at TEXT NOT NULL,
+      created_at VARCHAR(100) NOT NULL,
       updated_at TEXT NOT NULL, assigned_officer_id TEXT,
       FOREIGN KEY (reporter_user_id) REFERENCES users(id)
     );
@@ -301,10 +302,10 @@ CREATE TABLE satisfaction_surveys (
 INSERT INTO "satisfaction_surveys" VALUES(1,'U001','Budi Santoso','user@spkt.id','complaint','Pengaduan','ADU/001/V/2026','oke',75.0,'2026-06-14 05:38:32');
 INSERT INTO "satisfaction_surveys" VALUES(2,'U001','Budi Santoso','user@spkt.id','report','Buat Laporan','LP/005/V/2026',NULL,85.0,'2026-06-14 05:43:42');
 CREATE TABLE sessions (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       user_id TEXT NOT NULL,
       expires_at TEXT NOT NULL,
-      created_at TEXT NOT NULL,
+      created_at VARCHAR(100) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 INSERT INTO "sessions" VALUES('ae642082-7df4-43ee-8e60-35a2e5b22ffb','U001','2026-07-05T12:44:17.475Z','2026-06-28T12:44:17.475Z');
@@ -347,9 +348,9 @@ INSERT INTO "survey_responses" VALUES(10,2,5,4);
 CREATE TABLE user_activities (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
       user_id TEXT NOT NULL,
-      action TEXT NOT NULL,
+      action VARCHAR(100) NOT NULL,
       details TEXT,
-      created_at TEXT NOT NULL,
+      created_at VARCHAR(100) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 INSERT INTO "user_activities" VALUES(1,'U001','login',NULL,'2026-06-14T07:24:32.101Z');
@@ -439,7 +440,7 @@ INSERT INTO "user_activities" VALUES(84,'U003','login',NULL,'2026-06-28T15:05:31
 INSERT INTO "user_activities" VALUES(85,'U005','login',NULL,'2026-06-28T15:06:23.918Z');
 INSERT INTO "user_activities" VALUES(86,'U001','login',NULL,'2026-06-28T15:12:59.678Z');
 CREATE TABLE users (
-      id TEXT PRIMARY KEY,
+      id VARCHAR(100) PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -475,3 +476,4 @@ INSERT INTO "sqlite_sequence" VALUES('user_activities',86);
 INSERT INTO "sqlite_sequence" VALUES('letter_attachments',2);
 INSERT INTO "sqlite_sequence" VALUES('complaint_files',6);
 COMMIT;
+SET FOREIGN_KEY_CHECKS = 1;
