@@ -32,7 +32,8 @@ try {
     .replace(/action TEXT/g, 'action VARCHAR(100)')
     .replace(/entity_type TEXT/g, 'entity_type VARCHAR(100)')
     .replace(/entity_id TEXT/g, 'entity_id VARCHAR(100)')
-    .replace(/created_at TEXT/g, 'created_at VARCHAR(100)');
+    .replace(/created_at TEXT/g, 'created_at VARCHAR(100)')
+    .replace(/INSERT INTO "([^"]+)"/g, 'INSERT INTO `$1`');
 
   fs.writeFileSync(mysqlOutputPath, sqlContent, 'utf-8');
   console.log(`✨ Berhasil membuat file khusus MySQL: 'spkt_mysql.sql'!`);
