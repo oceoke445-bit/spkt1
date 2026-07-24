@@ -53,6 +53,7 @@ Salin `.env.example` ke `.env.local` jika perlu override.
 ## Dokumentasi
 
 - **[Diagram & alur aplikasi lengkap](docs/DIAGRAM_ALUR_APLIKASI.md)** — role, menu, laporan, surat, pengaduan, assign, API, database
+- **[Pengujian White / Black / Grey Box](docs/PENGUJIAN.md)** — kasus uji + cara menjalankan `npm run test`
 
 ## Struktur Penting
 
