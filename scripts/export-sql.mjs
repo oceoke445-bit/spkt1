@@ -34,22 +34,34 @@ try {
     .replace(/\b([a-zA-Z0-9_]*_number)\b TEXT/g, '$1 VARCHAR(100)')
     .replace(/\b([a-zA-Z0-9_]*_date|timestamp|created_at|updated_at|assigned_at)\b TEXT/g, '$1 VARCHAR(100)')
     .replace(/TEXT/g, 'LONGTEXT')
-    .replace(/INSERT INTO "([^"]+)"/g, 'INSERT INTO `$1`')
+    .replace(/INSERT INTO "([^"]+)"/g, 'INSERT IGNORE INTO `$1`')
     .replace(/DELETE FROM "sqlite_sequence";/g, '')
     .replace(/INSERT INTO `sqlite_sequence` VALUES\([^)]+\);/g, '')
+    .replace(/INSERT INTO sqlite_sequence VALUES\([^)]+\);/g, '')
     .replace(/CREATE TABLE sqlite_sequence\([^)]+\);/g, '')
-    .replace(/CHECK\(role IN \('user', 'petugas', 'admin'\)\)/g, '');
+    .replace(/DROP TABLE IF EXISTS `sqlite_sequence`;/g, '')
+    .replace(/CHECK\(role IN \('user', 'petugas', 'admin'\)\)/g, '')
+    .replace(/DEFAULT \(datetime\('now'\)\)/g, 'DEFAULT CURRENT_TIMESTAMP')
+    .replace(/CREATE TABLE (\b[a-zA-Z0-9_]+\b)/g, 'DROP TABLE IF EXISTS `$1`;\nCREATE TABLE `$1`');
 
   // Pindahkan pembuatan tabel 'users' ke paling atas agar Foreign Key tidak mengeluh
-  const createUsersRegex = /CREATE TABLE users \([\s\S]*?\);/;
+  const createUsersRegex = /DROP TABLE IF EXISTS `users`;\nCREATE TABLE `users` \([\s\S]*?\);/;
   const matchUsers = sqlContent.match(createUsersRegex);
   if (matchUsers) {
     sqlContent = sqlContent.replace(createUsersRegex, '');
     sqlContent = sqlContent.replace('START TRANSACTION;', 'START TRANSACTION;\n' + matchUsers[0]);
   }
 
-  // Bungkus nama kolom 'read' (reserved word di MySQL) dengan backticks
-  sqlContent = sqlContent.replace(/\bread INTEGER\b/g, '`read` INTEGER');
+  // Bungkus nama kolom 'read' & 'rank' (reserved words di MySQL) dengan backticks
+  sqlContent = sqlContent
+    .replace(/\bread INTEGER\b/g, '`read` INTEGER')
+    .replace(/\brank VARCHAR\b/g, '`rank` VARCHAR');
+
+  // Bersihkan baris yang mengandung sqlite_sequence
+  sqlContent = sqlContent
+    .split('\n')
+    .filter(line => !line.includes('sqlite_sequence'))
+    .join('\n');
 
   fs.writeFileSync(mysqlOutputPath, sqlContent, 'utf-8');
   console.log(`✨ Berhasil membuat file khusus MySQL: 'spkt_mysql.sql'!`);
