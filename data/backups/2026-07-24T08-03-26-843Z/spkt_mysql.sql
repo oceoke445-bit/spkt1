@@ -1,4 +1,4 @@
-BEGIN TRANSACTION;
+START TRANSACTION;
 CREATE TABLE audit_logs (
       id TEXT PRIMARY KEY,
       actor_id TEXT NOT NULL,
@@ -22,7 +22,7 @@ INSERT INTO "audit_logs" VALUES('AUD17826571014043jjx','U005','Aipda. Rini Kusum
 INSERT INTO "audit_logs" VALUES('AUD17826591565536rg4','U003','SUPERADMIN','update_complaint_status','complaint','C1782659074995','Status submitted → reviewing','2026-06-28T15:05:56.553Z');
 INSERT INTO "audit_logs" VALUES('AUD17826591565549smq','U003','SUPERADMIN','assign_complaint','complaint','C1782659074995','Ditugaskan ke officer OFF003','2026-06-28T15:05:56.554Z');
 CREATE TABLE complaint_files (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       complaint_id TEXT NOT NULL,
       filename TEXT NOT NULL,
       FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE
@@ -34,7 +34,7 @@ INSERT INTO "complaint_files" VALUES(4,'C1782657006527','U001_1782657006278_6621
 INSERT INTO "complaint_files" VALUES(5,'C1782659074174','U001_1782659072072_dee389e5_Cuplikan_layar_2026-06-14_101814.png');
 INSERT INTO "complaint_files" VALUES(6,'C1782659074995','U001_1782659074745_99cb6bfa_Cuplikan_layar_2026-06-14_101814.png');
 CREATE TABLE complaint_timeline (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       complaint_id TEXT NOT NULL,
       status TEXT NOT NULL,
       timestamp TEXT NOT NULL,
@@ -132,7 +132,7 @@ Langkah yang disarankan:
 
 Waktu pengurusan penggantian dokumen bervariasi tergantung antrian di instansi masing-masing. Segera laporkan kehilangan maksimal 1x24 jam setelah mengetahui dokumen hilang.','2026-05-01');
 CREATE TABLE letter_attachments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       letter_id TEXT NOT NULL,
       filename TEXT NOT NULL,
       FOREIGN KEY (letter_id) REFERENCES letter_requests(id) ON DELETE CASCADE
@@ -157,7 +157,7 @@ INSERT INTO "letter_requests" VALUES('L002','SKH/002/V/2026','U001','Budi Santos
 INSERT INTO "letter_requests" VALUES('L1782655369356','IZIN/001/V/2026','U001','Budi Santoso','3201012345678901','Izin Keramaian','kondangan','submitted','2026-07-30','2026-06-28T14:02:49.359Z',NULL,'2026-06-28T14:02:49.359Z','081234567890',NULL,NULL,NULL,NULL);
 INSERT INTO "letter_requests" VALUES('L1782657451463','SKCK/002/V/2026','U001','tri','3201012345678901','SKCK (Surat Keterangan Catatan Kepolisian)','m bbjbjnlmnm','submitted','2026-07-10','2026-06-28T14:37:31.465Z',NULL,'2026-06-28T14:37:31.465Z','081234567890',NULL,NULL,NULL,NULL);
 CREATE TABLE letter_timeline (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       letter_id TEXT NOT NULL,
       status TEXT NOT NULL,
       timestamp TEXT NOT NULL,
@@ -231,7 +231,7 @@ INSERT INTO "reference_counters" VALUES('SKH',2026,2);
 INSERT INTO "reference_counters" VALUES('IZIN',2026,1);
 INSERT INTO "reference_counters" VALUES('SKR',2026,0);
 CREATE TABLE report_evidence (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       report_id TEXT NOT NULL,
       filename TEXT NOT NULL,
       FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
@@ -240,7 +240,7 @@ INSERT INTO "report_evidence" VALUES(7,'R1782653106649','U001_1782653106343_ac7f
 INSERT INTO "report_evidence" VALUES(8,'R1782655234803','U001_1782655234493_19cc0ccd_Cuplikan_layar_2026-06-14_101814.png');
 INSERT INTO "report_evidence" VALUES(9,'R1782656300278','U001_1782656298331_89a0b4db_Cuplikan_layar_2026-06-14_101814.png');
 CREATE TABLE report_timeline (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       report_id TEXT NOT NULL,
       status TEXT NOT NULL,
       timestamp TEXT NOT NULL,
@@ -287,7 +287,7 @@ INSERT INTO "reports" VALUES('R1782653106649','LP/001/V/2026','U001','Budi Santo
 INSERT INTO "reports" VALUES('R1782655234803','LP/002/V/2026','U001','Budi Santoso','3201012345678901','081234567890','Penipuan','2026-06-27','jl pulo melati 6','oke','processing','medium','Ipda. Ahmad Wijaya','SUPERADMIN','2026-06-28T14:01:55.867Z',NULL,'2026-06-28T14:00:34.803Z','2026-06-28T14:51:39.351Z','OFF001');
 INSERT INTO "reports" VALUES('R1782656300278','LP/003/V/2026','U001','Budi Sant','3201012345678901','081234567890','','2026-06-05','jl pulo melati 6','ik','completed','medium','Ipda. Ahmad Wijaya','SUPERADMIN','2026-06-28T14:19:10.210Z',NULL,'2026-06-28T14:18:20.278Z','2026-06-28T14:21:44.875Z','OFF001');
 CREATE TABLE satisfaction_surveys (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       user_id TEXT,
       user_name TEXT NOT NULL,
       user_email TEXT,
@@ -315,7 +315,7 @@ INSERT INTO "sessions" VALUES('803b137b-bd0f-4f72-82fb-4ff3adadc454','U001','202
 INSERT INTO "sessions" VALUES('3490d23c-b709-486e-8a4a-9dbcc3f6d879','U001','2026-07-05T12:57:15.505Z','2026-06-28T12:57:15.504Z');
 INSERT INTO "sessions" VALUES('e59413a6-79f7-465e-ae4c-06ea068b4acc','U001','2026-07-05T15:12:59.676Z','2026-06-28T15:12:59.676Z');
 CREATE TABLE survey_dimensions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       code TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       weight REAL NOT NULL DEFAULT 1
@@ -326,7 +326,7 @@ INSERT INTO "survey_dimensions" VALUES(3,'officer','Keramahan Petugas',1.0);
 INSERT INTO "survey_dimensions" VALUES(4,'clarity','Kejelasan Informasi',1.0);
 INSERT INTO "survey_dimensions" VALUES(5,'quality','Kualitas Hasil Layanan',1.0);
 CREATE TABLE survey_responses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       survey_id INTEGER NOT NULL,
       dimension_id INTEGER NOT NULL,
       score INTEGER NOT NULL CHECK(score >= 1 AND score <= 4),
@@ -345,7 +345,7 @@ INSERT INTO "survey_responses" VALUES(8,2,3,3);
 INSERT INTO "survey_responses" VALUES(9,2,4,4);
 INSERT INTO "survey_responses" VALUES(10,2,5,4);
 CREATE TABLE user_activities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTO_INCREMENT,
       user_id TEXT NOT NULL,
       action TEXT NOT NULL,
       details TEXT,
