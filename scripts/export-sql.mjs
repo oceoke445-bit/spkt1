@@ -40,13 +40,16 @@ try {
     .replace(/CREATE TABLE sqlite_sequence\([^)]+\);/g, '')
     .replace(/CHECK\(role IN \('user', 'petugas', 'admin'\)\)/g, '');
 
-  // Pindahkan pembuataan tabel 'users' ke paling atas agar Foreign Key tidak mengeluh
+  // Pindahkan pembuatan tabel 'users' ke paling atas agar Foreign Key tidak mengeluh
   const createUsersRegex = /CREATE TABLE users \([\s\S]*?\);/;
   const matchUsers = sqlContent.match(createUsersRegex);
   if (matchUsers) {
     sqlContent = sqlContent.replace(createUsersRegex, '');
     sqlContent = sqlContent.replace('START TRANSACTION;', 'START TRANSACTION;\n' + matchUsers[0]);
   }
+
+  // Bungkus nama kolom 'read' (reserved word di MySQL) dengan backticks
+  sqlContent = sqlContent.replace(/\bread INTEGER\b/g, '`read` INTEGER');
 
   fs.writeFileSync(mysqlOutputPath, sqlContent, 'utf-8');
   console.log(`✨ Berhasil membuat file khusus MySQL: 'spkt_mysql.sql'!`);

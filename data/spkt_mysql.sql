@@ -187,7 +187,7 @@ CREATE TABLE notifications (
       title VARCHAR(255) NOT NULL,
       message VARCHAR(255) NOT NULL,
       link LONGTEXT,
-      read INTEGER NOT NULL DEFAULT 0,
+      `read` INTEGER NOT NULL DEFAULT 0,
       created_at VARCHAR(255) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
