@@ -2,13 +2,13 @@ SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 CREATE TABLE audit_logs (
       id VARCHAR(100) PRIMARY KEY,
-      actor_id VARCHAR(100) NOT NULL,
+      actor_id VARCHAR(255) NOT NULL,
       actor_name VARCHAR(255) NOT NULL,
-      action VARCHAR(100) NOT NULL,
-      entity_type VARCHAR(100) NOT NULL,
-      entity_id VARCHAR(100) NOT NULL,
-      details TEXT,
-      created_at VARCHAR(100) NOT NULL
+      action VARCHAR(255) NOT NULL,
+      entity_type VARCHAR(255) NOT NULL,
+      entity_id VARCHAR(255) NOT NULL,
+      details LONGTEXT,
+      created_at VARCHAR(255) NOT NULL
     );
 INSERT INTO `audit_logs` VALUES('AUD178142229712257s5','U003','Kompol. Sarah Putri','update_user','user','U001','{"active":false}','2026-06-14T07:31:37.122Z');
 INSERT INTO `audit_logs` VALUES('AUD17814224084577x4e','U003','Kompol. Sarah Putri','update_user','user','U001','{"active":true}','2026-06-14T07:33:28.458Z');
@@ -24,8 +24,8 @@ INSERT INTO `audit_logs` VALUES('AUD17826591565536rg4','U003','SUPERADMIN','upda
 INSERT INTO `audit_logs` VALUES('AUD17826591565549smq','U003','SUPERADMIN','assign_complaint','complaint','C1782659074995','Ditugaskan ke officer OFF003','2026-06-28T15:05:56.554Z');
 CREATE TABLE complaint_files (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      complaint_id TEXT NOT NULL,
-      filename TEXT NOT NULL,
+      complaint_id VARCHAR(255) NOT NULL,
+      filename VARCHAR(255) NOT NULL,
       FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE
     );
 INSERT INTO `complaint_files` VALUES(1,'C1782657004427','U001_1782657004081_dcd83de8_Cuplikan_layar_2026-06-14_101814.png');
@@ -36,11 +36,11 @@ INSERT INTO `complaint_files` VALUES(5,'C1782659074174','U001_1782659072072_dee3
 INSERT INTO `complaint_files` VALUES(6,'C1782659074995','U001_1782659074745_99cb6bfa_Cuplikan_layar_2026-06-14_101814.png');
 CREATE TABLE complaint_timeline (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      complaint_id TEXT NOT NULL,
-      status TEXT NOT NULL,
-      timestamp TEXT NOT NULL,
-      note TEXT,
-      officer TEXT,
+      complaint_id VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL,
+      timestamp VARCHAR(255) NOT NULL,
+      note LONGTEXT,
+      officer LONGTEXT,
       FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE
     );
 INSERT INTO `complaint_timeline` VALUES(1,'C001','Pengaduan dibuat','2026-05-10T10:00:00',NULL,NULL);
@@ -57,18 +57,18 @@ INSERT INTO `complaint_timeline` VALUES(11,'C1782659074995','Pengaduan dibuat','
 INSERT INTO `complaint_timeline` VALUES(12,'C1782659074995','Sedang ditinjau','2026-06-28T15:05:56.548Z','Ditugaskan ke petugas','SUPERADMIN');
 CREATE TABLE complaints (
       id VARCHAR(100) PRIMARY KEY,
-      complaint_number TEXT NOT NULL UNIQUE,
-      submitter_user_id TEXT,
-      submitter_name TEXT NOT NULL,
-      submitter_nik TEXT,
-      category TEXT NOT NULL,
-      subject TEXT NOT NULL,
-      description TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'submitted',
-      response TEXT,
-      response_date TEXT,
-      created_at VARCHAR(100) NOT NULL,
-      updated_at TEXT NOT NULL, assigned_officer_id TEXT, assigned_to TEXT, assigned_by TEXT, assigned_at TEXT,
+      complaint_number VARCHAR(255) NOT NULL UNIQUE,
+      submitter_user_id LONGTEXT,
+      submitter_name VARCHAR(255) NOT NULL,
+      submitter_nik LONGTEXT,
+      category VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      description VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL DEFAULT 'submitted',
+      response LONGTEXT,
+      response_date LONGTEXT,
+      created_at VARCHAR(255) NOT NULL,
+      updated_at VARCHAR(255) NOT NULL, assigned_officer_id LONGTEXT, assigned_to LONGTEXT, assigned_by LONGTEXT, assigned_at LONGTEXT,
       FOREIGN KEY (submitter_user_id) REFERENCES users(id)
     );
 INSERT INTO `complaints` VALUES('C001','ADU/001/V/2026','U001','Budi Santoso','3201012345678901','pelayanan','Proses laporan terlalu lama','Sudah 2 minggu laporan saya belum diproses','resolved','Terima kasih atas masukannya. Laporan Anda telah kami proses dan selesai.','2026-05-18T14:30:00','2026-05-10T10:00:00','2026-05-18T14:30:00',NULL,NULL,NULL,NULL);
@@ -81,11 +81,11 @@ INSERT INTO `complaints` VALUES('C1782659074174','ADU/007/V/2026','U001','Budi S
 INSERT INTO `complaints` VALUES('C1782659074995','ADU/008/V/2026','U001','Budi Santoso','3201012345678901','sistem','aplikasinya eror','karena lupa sandi','reviewing',NULL,NULL,'2026-06-28T15:04:34.997Z','2026-06-28T15:05:56.548Z','OFF003','Aipda. Rini Kusuma','SUPERADMIN','2026-06-28T15:05:56.548Z');
 CREATE TABLE info_articles (
       id VARCHAR(100) PRIMARY KEY,
-      title TEXT NOT NULL,
-      category TEXT NOT NULL,
-      description TEXT NOT NULL,
-      content TEXT NOT NULL,
-      published_at TEXT NOT NULL
+      title VARCHAR(255) NOT NULL,
+      category VARCHAR(255) NOT NULL,
+      description VARCHAR(255) NOT NULL,
+      content VARCHAR(255) NOT NULL,
+      published_at VARCHAR(255) NOT NULL
     );
 INSERT INTO `info_articles` VALUES('1','Cara Membuat Laporan Polisi Online','Panduan','Panduan lengkap membuat laporan polisi melalui sistem SPKT Digital','SPKT Digital kini memungkinkan masyarakat melaporkan tindak pidana tanpa harus datang ke kantor polisi terlebih dahulu. Layanan ini dirancang untuk mempercepat proses penerimaan laporan dan memberikan nomor referensi resmi yang dapat dilacak secara online.
 
@@ -134,23 +134,23 @@ Langkah yang disarankan:
 Waktu pengurusan penggantian dokumen bervariasi tergantung antrian di instansi masing-masing. Segera laporkan kehilangan maksimal 1x24 jam setelah mengetahui dokumen hilang.','2026-05-01');
 CREATE TABLE letter_attachments (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      letter_id TEXT NOT NULL,
-      filename TEXT NOT NULL,
+      letter_id VARCHAR(255) NOT NULL,
+      filename VARCHAR(255) NOT NULL,
       FOREIGN KEY (letter_id) REFERENCES letter_requests(id) ON DELETE CASCADE
     );
 INSERT INTO `letter_attachments` VALUES(1,'L1782655369356','U001_1782655369073_408c2ad1_Cuplikan_layar_2026-06-14_101814.png');
 INSERT INTO `letter_attachments` VALUES(2,'L1782657451463','U001_1782657449564_1005e34a_Cuplikan_layar_2026-06-14_100021.png');
 CREATE TABLE letter_requests (
       id VARCHAR(100) PRIMARY KEY,
-      request_number TEXT NOT NULL UNIQUE,
-      requester_user_id TEXT,
-      requester_name TEXT NOT NULL,
-      requester_nik TEXT NOT NULL,
-      letter_type TEXT NOT NULL,
-      purpose TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'submitted',
-      pickup_date TEXT,
-      created_at VARCHAR(100) NOT NULL, rejection_reason TEXT, updated_at TEXT, requester_phone TEXT, assigned_officer_id TEXT, assigned_to TEXT, assigned_by TEXT, assigned_at TEXT,
+      request_number VARCHAR(255) NOT NULL UNIQUE,
+      requester_user_id LONGTEXT,
+      requester_name VARCHAR(255) NOT NULL,
+      requester_nik VARCHAR(255) NOT NULL,
+      letter_type VARCHAR(255) NOT NULL,
+      purpose VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL DEFAULT 'submitted',
+      pickup_date LONGTEXT,
+      created_at VARCHAR(255) NOT NULL, rejection_reason LONGTEXT, updated_at LONGTEXT, requester_phone LONGTEXT, assigned_officer_id LONGTEXT, assigned_to LONGTEXT, assigned_by LONGTEXT, assigned_at LONGTEXT,
       FOREIGN KEY (requester_user_id) REFERENCES users(id)
     );
 INSERT INTO `letter_requests` VALUES('L001','SKCK/001/V/2026','U001','Budi Santoso','3201012345678901','SKCK','Melamar pekerjaan','ready','2026-05-22T00:00:00','2026-05-15T10:00:00',NULL,'2026-05-15T10:00:00',NULL,NULL,NULL,NULL,NULL);
@@ -159,11 +159,11 @@ INSERT INTO `letter_requests` VALUES('L1782655369356','IZIN/001/V/2026','U001','
 INSERT INTO `letter_requests` VALUES('L1782657451463','SKCK/002/V/2026','U001','tri','3201012345678901','SKCK (Surat Keterangan Catatan Kepolisian)','m bbjbjnlmnm','submitted','2026-07-10','2026-06-28T14:37:31.465Z',NULL,'2026-06-28T14:37:31.465Z','081234567890',NULL,NULL,NULL,NULL);
 CREATE TABLE letter_timeline (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      letter_id TEXT NOT NULL,
-      status TEXT NOT NULL,
-      timestamp TEXT NOT NULL,
-      note TEXT,
-      officer TEXT,
+      letter_id VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL,
+      timestamp VARCHAR(255) NOT NULL,
+      note LONGTEXT,
+      officer LONGTEXT,
       FOREIGN KEY (letter_id) REFERENCES letter_requests(id) ON DELETE CASCADE
     );
 INSERT INTO `letter_timeline` VALUES(1,'L001','Pengajuan dibuat','2026-05-15T10:00:00',NULL,NULL);
@@ -173,13 +173,13 @@ INSERT INTO `letter_timeline` VALUES(4,'L1782655369356','Pengajuan dikirim','202
 INSERT INTO `letter_timeline` VALUES(5,'L1782657451463','Pengajuan dikirim','2026-06-28T14:37:31.465Z',NULL,NULL);
 CREATE TABLE notifications (
       id VARCHAR(100) PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      type TEXT NOT NULL,
-      title TEXT NOT NULL,
-      message TEXT NOT NULL,
-      link TEXT,
+      user_id VARCHAR(255) NOT NULL,
+      type VARCHAR(255) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      message VARCHAR(255) NOT NULL,
+      link LONGTEXT,
       read INTEGER NOT NULL DEFAULT 0,
-      created_at VARCHAR(100) NOT NULL,
+      created_at VARCHAR(255) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 INSERT INTO `notifications` VALUES('N1781415691787jyhz','U001','report_status','Status Laporan Diperbarui','Laporan LP/005/V/2026 sekarang: Diverifikasi','my-reports',0,'2026-06-14T05:41:31.787Z');
@@ -202,25 +202,25 @@ INSERT INTO `notifications` VALUES('N1782658298365emvc','U001','report_status','
 INSERT INTO `notifications` VALUES('N1782659156552sjwi','U001','complaint_update','Pengaduan Ditanggapi','Pengaduan ADU/008/V/2026 telah diperbarui','complaints',0,'2026-06-28T15:05:56.552Z');
 CREATE TABLE officers (
       id VARCHAR(100) PRIMARY KEY,
-      user_id TEXT,
-      name TEXT NOT NULL,
-      rank TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'available', division TEXT NOT NULL DEFAULT 'laporan',
+      user_id LONGTEXT,
+      name VARCHAR(255) NOT NULL,
+      rank VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      phone VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL DEFAULT 'available', division VARCHAR(255) NOT NULL DEFAULT 'laporan',
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 INSERT INTO `officers` VALUES('OFF001','U002','Ipda. Ahmad Wijaya','Inspektur Polisi Dua','petugas@spkt.id','081234567890','available','laporan');
 INSERT INTO `officers` VALUES('OFF002','U004','Bripka. Andi Pratama','Brigadir Polisi Kepala','petugas-surat@spkt.id','081234567891','available','surat');
 INSERT INTO `officers` VALUES('OFF003','U005','Aipda. Rini Kusuma','Ajun Inspektur Polisi Dua','petugas-pengaduan@spkt.id','081234567892','available','pengaduan');
 CREATE TABLE pending_2fa (
-      token TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      expires_at TEXT NOT NULL,
+      token VARCHAR(100) PRIMARY KEY,
+      user_id VARCHAR(255) NOT NULL,
+      expires_at VARCHAR(255) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 CREATE TABLE reference_counters (
-      prefix TEXT NOT NULL,
+      prefix VARCHAR(255) NOT NULL,
       year INTEGER NOT NULL,
       last_value INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (prefix, year)
@@ -233,8 +233,8 @@ INSERT INTO `reference_counters` VALUES('IZIN',2026,1);
 INSERT INTO `reference_counters` VALUES('SKR',2026,0);
 CREATE TABLE report_evidence (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      report_id TEXT NOT NULL,
-      filename TEXT NOT NULL,
+      report_id VARCHAR(255) NOT NULL,
+      filename VARCHAR(255) NOT NULL,
       FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
     );
 INSERT INTO `report_evidence` VALUES(7,'R1782653106649','U001_1782653106343_ac7f9e42_Cuplikan_layar_2026-06-14_100017.png');
@@ -242,11 +242,11 @@ INSERT INTO `report_evidence` VALUES(8,'R1782655234803','U001_1782655234493_19cc
 INSERT INTO `report_evidence` VALUES(9,'R1782656300278','U001_1782656298331_89a0b4db_Cuplikan_layar_2026-06-14_101814.png');
 CREATE TABLE report_timeline (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      report_id TEXT NOT NULL,
-      status TEXT NOT NULL,
-      timestamp TEXT NOT NULL,
-      note TEXT,
-      officer TEXT,
+      report_id VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL,
+      timestamp VARCHAR(255) NOT NULL,
+      note LONGTEXT,
+      officer LONGTEXT,
       FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
     );
 INSERT INTO `report_timeline` VALUES(30,'R1782653106649','Laporan dikirim','2026-06-28T13:25:06.649Z',NULL,NULL);
@@ -265,23 +265,23 @@ INSERT INTO `report_timeline` VALUES(42,'R1782655234803','Diproses','2026-06-28T
 INSERT INTO `report_timeline` VALUES(43,'R1782655234803','Diproses','2026-06-28T14:51:39.351Z','cari orangnya','Ipda. Ahmad Wijaya');
 CREATE TABLE reports (
       id VARCHAR(100) PRIMARY KEY,
-      report_number TEXT NOT NULL UNIQUE,
-      reporter_user_id TEXT,
-      reporter_name TEXT NOT NULL,
-      reporter_nik TEXT NOT NULL,
-      reporter_phone TEXT NOT NULL,
-      case_type TEXT NOT NULL,
-      incident_date TEXT NOT NULL,
-      location TEXT NOT NULL,
-      description TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'submitted',
-      priority TEXT DEFAULT 'medium',
-      assigned_to TEXT,
-      assigned_by TEXT,
-      assigned_at TEXT,
-      notes TEXT,
-      created_at VARCHAR(100) NOT NULL,
-      updated_at TEXT NOT NULL, assigned_officer_id TEXT,
+      report_number VARCHAR(255) NOT NULL UNIQUE,
+      reporter_user_id LONGTEXT,
+      reporter_name VARCHAR(255) NOT NULL,
+      reporter_nik VARCHAR(255) NOT NULL,
+      reporter_phone VARCHAR(255) NOT NULL,
+      case_type VARCHAR(255) NOT NULL,
+      incident_date VARCHAR(255) NOT NULL,
+      location VARCHAR(255) NOT NULL,
+      description VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL DEFAULT 'submitted',
+      priority LONGTEXT DEFAULT 'medium',
+      assigned_to LONGTEXT,
+      assigned_by LONGTEXT,
+      assigned_at LONGTEXT,
+      notes LONGTEXT,
+      created_at VARCHAR(255) NOT NULL,
+      updated_at VARCHAR(255) NOT NULL, assigned_officer_id LONGTEXT,
       FOREIGN KEY (reporter_user_id) REFERENCES users(id)
     );
 INSERT INTO `reports` VALUES('R1782653106649','LP/001/V/2026','U001','Budi Santoso','3201012345678901','081234567890','Narkoba','2026-06-27','jl pulo melati 6','OKE','completed','medium','Ipda. Ahmad Wijaya','Ipda. Ahmad Wijaya','2026-06-28T13:25:41.574Z',NULL,'2026-06-28T13:25:06.649Z','2026-06-28T13:26:41.308Z','OFF001');
@@ -289,23 +289,23 @@ INSERT INTO `reports` VALUES('R1782655234803','LP/002/V/2026','U001','Budi Santo
 INSERT INTO `reports` VALUES('R1782656300278','LP/003/V/2026','U001','Budi Sant','3201012345678901','081234567890','','2026-06-05','jl pulo melati 6','ik','completed','medium','Ipda. Ahmad Wijaya','SUPERADMIN','2026-06-28T14:19:10.210Z',NULL,'2026-06-28T14:18:20.278Z','2026-06-28T14:21:44.875Z','OFF001');
 CREATE TABLE satisfaction_surveys (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      user_id TEXT,
-      user_name TEXT NOT NULL,
-      user_email TEXT,
-      service_type TEXT NOT NULL,
-      service_label TEXT,
-      reference_id TEXT,
-      comment TEXT,
+      user_id LONGTEXT,
+      user_name VARCHAR(255) NOT NULL,
+      user_email LONGTEXT,
+      service_type VARCHAR(255) NOT NULL,
+      service_label LONGTEXT,
+      reference_id LONGTEXT,
+      comment LONGTEXT,
       csi_score REAL NOT NULL,
-      submitted_at TEXT NOT NULL DEFAULT (datetime('now'))
+      submitted_at VARCHAR(255) NOT NULL DEFAULT (datetime('now'))
     );
 INSERT INTO `satisfaction_surveys` VALUES(1,'U001','Budi Santoso','user@spkt.id','complaint','Pengaduan','ADU/001/V/2026','oke',75.0,'2026-06-14 05:38:32');
 INSERT INTO `satisfaction_surveys` VALUES(2,'U001','Budi Santoso','user@spkt.id','report','Buat Laporan','LP/005/V/2026',NULL,85.0,'2026-06-14 05:43:42');
 CREATE TABLE sessions (
       id VARCHAR(100) PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      expires_at TEXT NOT NULL,
-      created_at VARCHAR(100) NOT NULL,
+      user_id VARCHAR(255) NOT NULL,
+      expires_at VARCHAR(255) NOT NULL,
+      created_at VARCHAR(255) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 INSERT INTO `sessions` VALUES('ae642082-7df4-43ee-8e60-35a2e5b22ffb','U001','2026-07-05T12:44:17.475Z','2026-06-28T12:44:17.475Z');
@@ -317,8 +317,8 @@ INSERT INTO `sessions` VALUES('3490d23c-b709-486e-8a4a-9dbcc3f6d879','U001','202
 INSERT INTO `sessions` VALUES('e59413a6-79f7-465e-ae4c-06ea068b4acc','U001','2026-07-05T15:12:59.676Z','2026-06-28T15:12:59.676Z');
 CREATE TABLE survey_dimensions (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      code TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
+      code VARCHAR(255) NOT NULL UNIQUE,
+      name VARCHAR(255) NOT NULL,
       weight REAL NOT NULL DEFAULT 1
     );
 INSERT INTO `survey_dimensions` VALUES(1,'ease','Kemudahan Prosedur',1.0);
@@ -347,10 +347,10 @@ INSERT INTO `survey_responses` VALUES(9,2,4,4);
 INSERT INTO `survey_responses` VALUES(10,2,5,4);
 CREATE TABLE user_activities (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      user_id TEXT NOT NULL,
-      action VARCHAR(100) NOT NULL,
-      details TEXT,
-      created_at VARCHAR(100) NOT NULL,
+      user_id VARCHAR(255) NOT NULL,
+      action VARCHAR(255) NOT NULL,
+      details LONGTEXT,
+      created_at VARCHAR(255) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 INSERT INTO `user_activities` VALUES(1,'U001','login',NULL,'2026-06-14T07:24:32.101Z');
@@ -441,13 +441,13 @@ INSERT INTO `user_activities` VALUES(85,'U005','login',NULL,'2026-06-28T15:06:23
 INSERT INTO `user_activities` VALUES(86,'U001','login',NULL,'2026-06-28T15:12:59.678Z');
 CREATE TABLE users (
       id VARCHAR(100) PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL,
-      name TEXT NOT NULL,
-      nik TEXT,
-      phone TEXT,
-      role TEXT NOT NULL CHECK(role IN ('user', 'petugas', 'admin'))
-    , active INTEGER NOT NULL DEFAULT 1, address TEXT, avatar_url TEXT, preferences_json TEXT NOT NULL DEFAULT '{}', totp_secret TEXT, totp_enabled INTEGER NOT NULL DEFAULT 0);
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      nik LONGTEXT,
+      phone LONGTEXT,
+      role VARCHAR(255) NOT NULL CHECK(role IN ('user', 'petugas', 'admin'))
+    , active INTEGER NOT NULL DEFAULT 1, address LONGTEXT, avatar_url LONGTEXT, preferences_json VARCHAR(255) NOT NULL DEFAULT '{}', totp_secret LONGTEXT, totp_enabled INTEGER NOT NULL DEFAULT 0);
 INSERT INTO `users` VALUES('U001','user@spkt.id','scrypt:618a98596a3963d84daaba4d3e372818:188c9e78ac90a39e008ac1296bec148e88255682f847535e9093baca42c6d926aaa1bb2f29803a4142c809e509a6a96d66fd2a77f9e16bf655c2d4c16f35f4fd','Budi Santoso','3201012345678901','081234567890','user',1,NULL,NULL,'{"email":true,"push":true,"sms":false,"reportUpdate":true,"letterReady":true,"systemNews":false,"darkMode":true}',NULL,0);
 INSERT INTO `users` VALUES('U002','petugas@spkt.id','scrypt:618a98596a3963d84daaba4d3e372818:188c9e78ac90a39e008ac1296bec148e88255682f847535e9093baca42c6d926aaa1bb2f29803a4142c809e509a6a96d66fd2a77f9e16bf655c2d4c16f35f4fd','Ipda. Ahmad Wijaya',NULL,'081234567890','petugas',1,NULL,'U002_1782651961670_3916ab93_Cuplikan_layar_2026-06-14_101814.png','{"email":true,"push":true,"sms":false,"reportUpdate":true,"letterReady":true,"systemNews":false,"darkMode":true}',NULL,0);
 INSERT INTO `users` VALUES('U003','admin@spkt.id','scrypt:618a98596a3963d84daaba4d3e372818:188c9e78ac90a39e008ac1296bec148e88255682f847535e9093baca42c6d926aaa1bb2f29803a4142c809e509a6a96d66fd2a77f9e16bf655c2d4c16f35f4fd','Kompol. Sarah Putri',NULL,'','admin',1,'',NULL,'{"email":true,"push":true,"sms":true,"reportUpdate":true,"letterReady":true,"systemNews":true,"publicProfile":false,"activityHistory":true}',NULL,0);

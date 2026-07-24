@@ -26,13 +26,9 @@ try {
     .replace(/^BEGIN TRANSACTION;/gm, 'SET FOREIGN_KEY_CHECKS = 0;\nSTART TRANSACTION;')
     .replace(/^COMMIT;/gm, 'COMMIT;\nSET FOREIGN_KEY_CHECKS = 1;')
     .replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT')
-    .replace(/id TEXT PRIMARY KEY/g, 'id VARCHAR(100) PRIMARY KEY')
-    .replace(/actor_id TEXT/g, 'actor_id VARCHAR(100)')
-    .replace(/actor_name TEXT/g, 'actor_name VARCHAR(255)')
-    .replace(/action TEXT/g, 'action VARCHAR(100)')
-    .replace(/entity_type TEXT/g, 'entity_type VARCHAR(100)')
-    .replace(/entity_id TEXT/g, 'entity_id VARCHAR(100)')
-    .replace(/created_at TEXT/g, 'created_at VARCHAR(100)')
+    .replace(/(\b[a-zA-Z0-9_]+\b) TEXT PRIMARY KEY/g, '$1 VARCHAR(100) PRIMARY KEY')
+    .replace(/TEXT NOT NULL/g, 'VARCHAR(255) NOT NULL')
+    .replace(/TEXT/g, 'LONGTEXT')
     .replace(/INSERT INTO "([^"]+)"/g, 'INSERT INTO `$1`');
 
   fs.writeFileSync(mysqlOutputPath, sqlContent, 'utf-8');
