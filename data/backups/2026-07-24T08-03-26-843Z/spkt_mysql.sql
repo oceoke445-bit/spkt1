@@ -58,17 +58,17 @@ INSERT INTO `complaint_timeline` VALUES(12,'C1782659074995','Sedang ditinjau','2
 CREATE TABLE complaints (
       id VARCHAR(100) PRIMARY KEY,
       complaint_number VARCHAR(255) NOT NULL UNIQUE,
-      submitter_user_id LONGTEXT,
+      submitter_user_id VARCHAR(100),
       submitter_name VARCHAR(255) NOT NULL,
-      submitter_nik LONGTEXT,
+      submitter_nik VARCHAR(100),
       category VARCHAR(255) NOT NULL,
       subject VARCHAR(255) NOT NULL,
       description VARCHAR(255) NOT NULL,
       status VARCHAR(255) NOT NULL DEFAULT 'submitted',
       response LONGTEXT,
-      response_date LONGTEXT,
+      response_date VARCHAR(100),
       created_at VARCHAR(255) NOT NULL,
-      updated_at VARCHAR(255) NOT NULL, assigned_officer_id LONGTEXT, assigned_to LONGTEXT, assigned_by LONGTEXT, assigned_at LONGTEXT,
+      updated_at VARCHAR(255) NOT NULL, assigned_officer_id VARCHAR(100), assigned_to LONGTEXT, assigned_by LONGTEXT, assigned_at VARCHAR(100),
       FOREIGN KEY (submitter_user_id) REFERENCES users(id)
     );
 INSERT INTO `complaints` VALUES('C001','ADU/001/V/2026','U001','Budi Santoso','3201012345678901','pelayanan','Proses laporan terlalu lama','Sudah 2 minggu laporan saya belum diproses','resolved','Terima kasih atas masukannya. Laporan Anda telah kami proses dan selesai.','2026-05-18T14:30:00','2026-05-10T10:00:00','2026-05-18T14:30:00',NULL,NULL,NULL,NULL);
@@ -143,14 +143,14 @@ INSERT INTO `letter_attachments` VALUES(2,'L1782657451463','U001_1782657449564_1
 CREATE TABLE letter_requests (
       id VARCHAR(100) PRIMARY KEY,
       request_number VARCHAR(255) NOT NULL UNIQUE,
-      requester_user_id LONGTEXT,
+      requester_user_id VARCHAR(100),
       requester_name VARCHAR(255) NOT NULL,
       requester_nik VARCHAR(255) NOT NULL,
       letter_type VARCHAR(255) NOT NULL,
       purpose VARCHAR(255) NOT NULL,
       status VARCHAR(255) NOT NULL DEFAULT 'submitted',
-      pickup_date LONGTEXT,
-      created_at VARCHAR(255) NOT NULL, rejection_reason LONGTEXT, updated_at LONGTEXT, requester_phone LONGTEXT, assigned_officer_id LONGTEXT, assigned_to LONGTEXT, assigned_by LONGTEXT, assigned_at LONGTEXT,
+      pickup_date VARCHAR(100),
+      created_at VARCHAR(255) NOT NULL, rejection_reason LONGTEXT, updated_at VARCHAR(100), requester_phone LONGTEXT, assigned_officer_id VARCHAR(100), assigned_to LONGTEXT, assigned_by LONGTEXT, assigned_at VARCHAR(100),
       FOREIGN KEY (requester_user_id) REFERENCES users(id)
     );
 INSERT INTO `letter_requests` VALUES('L001','SKCK/001/V/2026','U001','Budi Santoso','3201012345678901','SKCK','Melamar pekerjaan','ready','2026-05-22T00:00:00','2026-05-15T10:00:00',NULL,'2026-05-15T10:00:00',NULL,NULL,NULL,NULL,NULL);
@@ -202,7 +202,7 @@ INSERT INTO `notifications` VALUES('N1782658298365emvc','U001','report_status','
 INSERT INTO `notifications` VALUES('N1782659156552sjwi','U001','complaint_update','Pengaduan Ditanggapi','Pengaduan ADU/008/V/2026 telah diperbarui','complaints',0,'2026-06-28T15:05:56.552Z');
 CREATE TABLE officers (
       id VARCHAR(100) PRIMARY KEY,
-      user_id LONGTEXT,
+      user_id VARCHAR(100),
       name VARCHAR(255) NOT NULL,
       rank VARCHAR(255) NOT NULL,
       email VARCHAR(255) NOT NULL,
@@ -266,7 +266,7 @@ INSERT INTO `report_timeline` VALUES(43,'R1782655234803','Diproses','2026-06-28T
 CREATE TABLE reports (
       id VARCHAR(100) PRIMARY KEY,
       report_number VARCHAR(255) NOT NULL UNIQUE,
-      reporter_user_id LONGTEXT,
+      reporter_user_id VARCHAR(100),
       reporter_name VARCHAR(255) NOT NULL,
       reporter_nik VARCHAR(255) NOT NULL,
       reporter_phone VARCHAR(255) NOT NULL,
@@ -278,10 +278,10 @@ CREATE TABLE reports (
       priority LONGTEXT DEFAULT 'medium',
       assigned_to LONGTEXT,
       assigned_by LONGTEXT,
-      assigned_at LONGTEXT,
+      assigned_at VARCHAR(100),
       notes LONGTEXT,
       created_at VARCHAR(255) NOT NULL,
-      updated_at VARCHAR(255) NOT NULL, assigned_officer_id LONGTEXT,
+      updated_at VARCHAR(255) NOT NULL, assigned_officer_id VARCHAR(100),
       FOREIGN KEY (reporter_user_id) REFERENCES users(id)
     );
 INSERT INTO `reports` VALUES('R1782653106649','LP/001/V/2026','U001','Budi Santoso','3201012345678901','081234567890','Narkoba','2026-06-27','jl pulo melati 6','OKE','completed','medium','Ipda. Ahmad Wijaya','Ipda. Ahmad Wijaya','2026-06-28T13:25:41.574Z',NULL,'2026-06-28T13:25:06.649Z','2026-06-28T13:26:41.308Z','OFF001');
@@ -289,12 +289,12 @@ INSERT INTO `reports` VALUES('R1782655234803','LP/002/V/2026','U001','Budi Santo
 INSERT INTO `reports` VALUES('R1782656300278','LP/003/V/2026','U001','Budi Sant','3201012345678901','081234567890','','2026-06-05','jl pulo melati 6','ik','completed','medium','Ipda. Ahmad Wijaya','SUPERADMIN','2026-06-28T14:19:10.210Z',NULL,'2026-06-28T14:18:20.278Z','2026-06-28T14:21:44.875Z','OFF001');
 CREATE TABLE satisfaction_surveys (
       id INTEGER PRIMARY KEY AUTO_INCREMENT,
-      user_id LONGTEXT,
+      user_id VARCHAR(100),
       user_name VARCHAR(255) NOT NULL,
       user_email LONGTEXT,
       service_type VARCHAR(255) NOT NULL,
       service_label LONGTEXT,
-      reference_id LONGTEXT,
+      reference_id VARCHAR(100),
       comment LONGTEXT,
       csi_score REAL NOT NULL,
       submitted_at VARCHAR(255) NOT NULL DEFAULT (datetime('now'))

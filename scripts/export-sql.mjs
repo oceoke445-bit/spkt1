@@ -28,6 +28,11 @@ try {
     .replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT')
     .replace(/(\b[a-zA-Z0-9_]+\b) TEXT PRIMARY KEY/g, '$1 VARCHAR(100) PRIMARY KEY')
     .replace(/TEXT NOT NULL/g, 'VARCHAR(255) NOT NULL')
+    .replace(/TEXT UNIQUE/g, 'VARCHAR(255) UNIQUE')
+    .replace(/\b([a-zA-Z0-9_]*_id)\b TEXT/g, '$1 VARCHAR(100)')
+    .replace(/\b([a-zA-Z0-9_]*_nik)\b TEXT/g, '$1 VARCHAR(100)')
+    .replace(/\b([a-zA-Z0-9_]*_number)\b TEXT/g, '$1 VARCHAR(100)')
+    .replace(/\b([a-zA-Z0-9_]*_date|timestamp|created_at|updated_at|assigned_at)\b TEXT/g, '$1 VARCHAR(100)')
     .replace(/TEXT/g, 'LONGTEXT')
     .replace(/INSERT INTO "([^"]+)"/g, 'INSERT INTO `$1`');
 
